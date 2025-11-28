@@ -467,6 +467,12 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
   Matrix      Nr_panA          ( rank_, nodeCount_panrib_ );
   Matrix      Nc_panA          ( rank_, nodeCount_panrib_ );
   Matrix      Nh_panA          ( rank_, nodeCount_panrib_ );
+  Matrix      Nrx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nry_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncy_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhy_panA         ( rank_, nodeCount_panrib_ );
 
   Matrix      b_mem_panB       ( qRank_, 2*nodeCount_panrib_ );
   Vector      Disp_mem_panB    ( 2*nodeCount_panrib_ );
@@ -480,6 +486,12 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
   Matrix      Nr_panB          ( rank_, nodeCount_panrib_ );
   Matrix      Nc_panB          ( rank_, nodeCount_panrib_ );
   Matrix      Nh_panB          ( rank_, nodeCount_panrib_ );
+  Matrix      Nrx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nry_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncy_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhy_panB         ( rank_, nodeCount_panrib_ );
 
   Matrix      b_mem_rib        ( qRank_, 2*nodeCount_panrib_ );
   Vector      Disp_mem_rib     ( 2*nodeCount_panrib_ );
@@ -544,19 +556,23 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
 
   Matrix      Nu_panA          ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_panA          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panA         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panA         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panA         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panA         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nu_panB          ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_panB          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panB         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panB         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panB         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panB         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nu_rib           ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_rib           ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_rib      ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_rib          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_rib          ( 1, 3 * nodeCount_panrib_ );
 
   Matrix      elemMat      ( dofCount, dofCount  );
   Vector      elemForce    ( dofCount  );
@@ -599,6 +615,9 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
   Vector      T_I ( ipCount_*jpCount_ );
   Vector      D_I ( ipCount_*jpCount_ );
 
+  Vector      jump_T   ( qRank_     );
+  Vector      R_I      ( ipCount_ );
+
   double Area_panA, Area_panB, Area_rib;
   double det_panA, det_panB, det_rib;
 
@@ -628,7 +647,7 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
 
   thick_shape_->getIntegrationWeights ( jpWeights, thick_xcoords );
 
-  // DOFs connectivity from Jive to the paper from Ai et al. 2024.
+  // Dofs connectivity from the Jive order to the shell-shell cohesive line element order.
 
   getConnectivity_ ( Connect, ConnectInv );
 
@@ -709,9 +728,6 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
     Hr_panA = Ginv_panA(slice(0*nodeCount_panrib_,1*nodeCount_panrib_),slice(0,3*nodeCount_panrib_)); 
     Hc_panA = Ginv_panA(slice(1*nodeCount_panrib_,2*nodeCount_panrib_),slice(0,3*nodeCount_panrib_)); 
     Hh_panA = Ginv_panA(slice(2*nodeCount_panrib_,3*nodeCount_panrib_),slice(0,3*nodeCount_panrib_));  
-    // GmatInverseError_( error_panA, Gmat_panA, Ginv_panA );
-    // jem::System::out() << error_panA << " ";
-    // jem::System::out() << "\n";
 
     // Get Ginv and the Hr, Hc and Hh matrices: Panel B.
 
@@ -720,9 +736,6 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
     Hr_panB = Ginv_panB(slice(0*nodeCount_panrib_,1*nodeCount_panrib_),slice(0,3*nodeCount_panrib_)); 
     Hc_panB = Ginv_panB(slice(1*nodeCount_panrib_,2*nodeCount_panrib_),slice(0,3*nodeCount_panrib_)); 
     Hh_panB = Ginv_panB(slice(2*nodeCount_panrib_,3*nodeCount_panrib_),slice(0,3*nodeCount_panrib_));   
-    // GmatInverseError_( error_panB, Gmat_panB, Ginv_panB );
-    // jem::System::out() << error_panB << " ";
-    // jem::System::out() << "\n";
 
     // Get Ginv and the Hr, Hc and Hh matrices: Rib.
 
@@ -731,9 +744,6 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
     Hr_rib = Ginv_rib(slice(0*nodeCount_panrib_,1*nodeCount_panrib_),slice(0,3*nodeCount_panrib_)); 
     Hc_rib = Ginv_rib(slice(1*nodeCount_panrib_,2*nodeCount_panrib_),slice(0,3*nodeCount_panrib_)); 
     Hh_rib = Ginv_rib(slice(2*nodeCount_panrib_,3*nodeCount_panrib_),slice(0,3*nodeCount_panrib_));  
-    // GmatInverseError_( error_rib, Gmat_rib, Ginv_rib );
-    // jem::System::out() << error_rib << " ";
-    // jem::System::out() << "\n";
 
     // Get the integration points over the interface in the 2D Local coordinate system of the BLine2 element.
 
@@ -799,7 +809,7 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
 
     getMembraneDisp_(Disp_mem_panA, Disp_mem_panB, Disp_mem_rib, elemxDisp0);
 
-    // Reordering the DOFs to match the order in the paper from Ai et al. 2024.
+    // Reordering the Dofs to match the order in the shell-shell cohesive line element.
 
     elemxDisp = 0.0;
     for ( idx_t i = 0; i < dofCount; i++ )
@@ -814,172 +824,199 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
 
     for ( idx_t ip = 0; ip < ipCount_; ip++ )
     {
+      // Get the C matrix for the panel and ribs.
+
+      for ( idx_t ip_panrib = 0; ip_panrib < ipCount_panrib_; ip_panrib++ )
+      {
+        // Get the plate stiffness matrix for the panel A, panel B and ribs.
+        
+        getShapeGrads_ ( b_mem_panA, grads_panA(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_panA, b_mem_panA, Disp_mem_panA );
+        material_[0]->update ( stress_mem_panA, stiff_panA, strain_mem_panA, ipoint_panA++ );
+        D_plate_panA = stiff_panA*(pow(thickness_[0], 3))/12.0;
+
+        getShapeGrads_ ( b_mem_panB, grads_panB(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_panB, b_mem_panB, Disp_mem_panB );
+        material_[0]->update ( stress_mem_panB, stiff_panB, strain_mem_panB, ipoint_panB++ );
+        D_plate_panB = stiff_panB*(pow(thickness_[0], 3))/12.0;
+
+        getShapeGrads_ ( b_mem_rib, grads_rib(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_rib, b_mem_rib, Disp_mem_rib );
+        material_[1]->update ( stress_mem_rib, stiff_rib, strain_mem_rib, ipoint_rib++ );
+        D_plate_rib = stiff_rib*(pow(thickness_[1], 3))/12.0;
+
+        // Get the H matrix for the panel A, panel B and ribs.
+
+        getHmatAnalytic_(Hmat_panA, D_plate_panA, xcoords_panA);
+        Hinv_panA = Hmat_panA;
+        jem::numeric::Cholesky::invert(Hinv_panA);
+
+        getHmatAnalytic_(Hmat_panB, D_plate_panB, xcoords_panB);
+        Hinv_panB = Hmat_panB;
+        jem::numeric::Cholesky::invert(Hinv_panB);
+
+        getHmatAnalytic_(Hmat_rib, D_plate_rib, xcoords_rib);
+        Hinv_rib = Hmat_rib;
+        jem::numeric::Cholesky::invert(Hinv_rib);
+
+        // Get the B and C matrices for the panel A, panel B and ribs.
+
+        getBmat_(Bmat_panA, D_plate_panA, xcoords_panA);
+        Cmat_panA = mc3.matmul ( Hinv_panA, Bmat_panA, Tmat_panA );
+
+        getBmat_(Bmat_panB, D_plate_panB, xcoords_panB);
+        Cmat_panB = mc3.matmul ( Hinv_panB, Bmat_panB, Tmat_panB );
+
+        getBmat_(Bmat_rib, D_plate_rib, xcoords_rib);
+        Cmat_rib = mc3.matmul ( Hinv_rib, Bmat_rib, Tmat_rib );
+      }
+
+      double x, y, z_rib;
+
+      // Get the integration points in the panel A coordinate system.
+
+      x = ipxcoords_panA(0,ip);
+      y = ipxcoords_panA(1,ip);
+
+      // Get the Nr, Nc and Nh matrices for the panel A.
+
+      getNrNcNhmats_(Nr_panA, Nc_panA, Nh_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nu and Nv matrices for the panel A.
+
+      getNuNvmats_(Nu_panA, Nv_panA, Nr_panA, Hr_panA, Nc_panA, Hc_panA, Nh_panA, Hh_panA);
+
+      // Get the Nrx, Ncx and Nhx matrices for the panel A.
+
+      getNrxNcxNhxmats_(Nrx_panA, Ncx_panA, Nhx_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nry, Ncy and Nhy matrices for the panel A.
+
+      getNryNcyNhymats_(Nry_panA, Ncy_panA, Nhy_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nvx and Nuy matrices for the panel A.
+
+      getNvxmat_(Nvx_panA, Nrx_panA, Hr_panA, Ncx_panA, Hc_panA, Nhx_panA, Hh_panA);
+
+      getNuymat_(Nuy_panA, Nry_panA, Hr_panA, Ncy_panA, Hc_panA, Nhy_panA, Hh_panA);
+
+      // Get the S, R, Rx and Ry matrices for the panel A.
+
+      getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
+
+      // Get the integration points in the panel B coordinate system.
+
+      x = ipxcoords_panB(0,ip);
+      y = ipxcoords_panB(1,ip);
+
+      // Get the Nr, Nc and Nh matrices for the panel B.
+
+      getNrNcNhmats_(Nr_panB, Nc_panB, Nh_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nu and Nv matrices for the panel B.
+
+      getNuNvmats_(Nu_panB, Nv_panB, Nr_panB, Hr_panB, Nc_panB, Hc_panB, Nh_panB, Hh_panB);
+
+      // Get the Nrx, Ncx and Nhx matrices for the panel B.
+
+      getNrxNcxNhxmats_(Nrx_panB, Ncx_panB, Nhx_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nry, Ncy and Nhy matrices for the panel B.
+
+      getNryNcyNhymats_(Nry_panB, Ncy_panB, Nhy_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nvx and Nuy matrices for the panel B.
+
+      getNvxmat_(Nvx_panB, Nrx_panB, Hr_panB, Ncx_panB, Hc_panB, Nhx_panB, Hh_panB);
+
+      getNuymat_(Nuy_panB, Nry_panB, Hr_panB, Ncy_panB, Hc_panB, Nhy_panB, Hh_panB);
+
+      // Get the S, R, Rx and Ry matrices for the panel B.
+
+      getSRRxRymats_(Smat_panB, Rmat_panB, Rxmat_panB, Rymat_panB, x, y);
+
+      // Get the integration points in the ribs coordinate system.
+
+      x = ipxcoords_rib(0,ip);
+      y = ipxcoords_rib(1,ip); 
+
+      // Get the Nr, Nc and Nh matrices for the rib.
+
+      getNrNcNhmats_(Nr_rib, Nc_rib, Nh_rib, xcoords_rib, Area_rib, x, y);
+
+      // Get the Nu and Nv matrices for the rib.
+
+      getNuNvmats_(Nu_rib, Nv_rib, Nr_rib, Hr_rib, Nc_rib, Hc_rib, Nh_rib, Hh_rib);
+
+      // Get the S, R, Rx and Ry matrices for the ribs.
+
+      getSRRxRymats_(Smat_rib, Rmat_rib, Rxmat_rib, Rymat_rib, x, y);
+
+      // Get the Nw, Nwx and Nwy matrices for the panel A, panel B and ribs.
+        
+      BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
+      Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
+      Nwx_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
+      Nwy_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
+
+      BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
+      Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
+      Nwx_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
+      Nwy_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
+
+      BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
+      Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
+      Nwx_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
+      Nwy_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
+
+      // Assemble the BCD matrix of the structural cohesive element.
+
+      BCDmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCDmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panA(0,ALL);
+      BCDmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCDmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panB(0,ALL);
+      BCDmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nv_rib(0,ALL);
+      BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
+      BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
+      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwx_panA(0,ALL);
+      BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
+      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panB(0,ALL);
+      BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
+      BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+      
+      BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
+      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwy_panA(0,ALL);
+      BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
+      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panB(0,ALL);
+      BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
+
+      // Assemble the BCT matrix of the structural cohesive element. 
+
+      BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panA(0,ALL);
+      BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panB(0,ALL);
+      BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwy_rib(0,ALL);
+
+      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panA(0,ALL)-Nuy_panA(0,ALL));
+      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panB(0,ALL)-Nuy_panB(0,ALL));
+      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwx_rib(0,ALL);
+      
+      BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
       for ( idx_t jp = 0; jp < jpCount_; jp++ )
       {
-
-        // Get the C matrix for the panel and ribs.
-
-        for ( idx_t ip_panrib = 0; ip_panrib < ipCount_panrib_; ip_panrib++ )
-        {
-          // Get the plate stiffness matrix for the panel A, panel B and ribs.
-          
-          getShapeGrads_ ( b_mem_panA, grads_panA(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_panA, b_mem_panA, Disp_mem_panA );
-          material_[0]->update ( stress_mem_panA, stiff_panA, strain_mem_panA, ipoint_panA++ );
-          D_plate_panA = stiff_panA*(pow(thickness_[0], 3))/12.0;
-
-          getShapeGrads_ ( b_mem_panB, grads_panB(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_panB, b_mem_panB, Disp_mem_panB );
-          material_[0]->update ( stress_mem_panB, stiff_panB, strain_mem_panB, ipoint_panB++ );
-          D_plate_panB = stiff_panB*(pow(thickness_[0], 3))/12.0;
-
-          getShapeGrads_ ( b_mem_rib, grads_rib(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_rib, b_mem_rib, Disp_mem_rib );
-          material_[1]->update ( stress_mem_rib, stiff_rib, strain_mem_rib, ipoint_rib++ );
-          D_plate_rib = stiff_rib*(pow(thickness_[1], 3))/12.0;
-
-          // Get the H matrix for the panel A, panel B and ribs.
-
-          getHmatAnalytic_(Hmat_panA, D_plate_panA, xcoords_panA);
-          Hinv_panA = Hmat_panA;
-          jem::numeric::Cholesky::invert(Hinv_panA);
-
-          getHmatAnalytic_(Hmat_panB, D_plate_panB, xcoords_panB);
-          Hinv_panB = Hmat_panB;
-          jem::numeric::Cholesky::invert(Hinv_panB);
-
-          getHmatAnalytic_(Hmat_rib, D_plate_rib, xcoords_rib);
-          Hinv_rib = Hmat_rib;
-          jem::numeric::Cholesky::invert(Hinv_rib);
-
-          // Get the B and C matrices for the panel A, panel B and ribs.
-
-          getBmat_(Bmat_panA, D_plate_panA, xcoords_panA);
-          Cmat_panA = mc3.matmul ( Hinv_panA, Bmat_panA, Tmat_panA );
-
-          getBmat_(Bmat_panB, D_plate_panB, xcoords_panB);
-          Cmat_panB = mc3.matmul ( Hinv_panB, Bmat_panB, Tmat_panB );
-
-          getBmat_(Bmat_rib, D_plate_rib, xcoords_rib);
-          Cmat_rib = mc3.matmul ( Hinv_rib, Bmat_rib, Tmat_rib );
-        }
-
-        double x, y, z_rib;
-
-        // Get the integration points in the panel A coordinate system.
-
-        x = ipxcoords_panA(0,ip);
-        y = ipxcoords_panA(1,ip);
-
-        // Get the Nr, Nc and Nh matrices for the panel A.
-
-        getNrNcNhmats_(Nr_panA, Nc_panA, Nh_panA, xcoords_panA, Area_panA, x, y);
-
-        // Get the Nu and Nv matrices for the panel A.
-
-        getNuNvmats_(Nu_panA, Nv_panA, Nr_panA, Hr_panA, Nc_panA, Hc_panA, Nh_panA, Hh_panA);
-
-        // Get the S, R, Rx and Ry matrices for the panel A.
-
-        getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
-
-        // Get the integration points in the panel B coordinate system.
-
-        x = ipxcoords_panB(0,ip);
-        y = ipxcoords_panB(1,ip);
-
-        // Get the Nr, Nc and Nh matrices for the panel B.
-
-        getNrNcNhmats_(Nr_panB, Nc_panB, Nh_panB, xcoords_panB, Area_panB, x, y);
-
-        // Get the Nu and Nv matrices for the panel B.
-
-        getNuNvmats_(Nu_panB, Nv_panB, Nr_panB, Hr_panB, Nc_panB, Hc_panB, Nh_panB, Hh_panB);
-
-        // Get the S, R, Rx and Ry matrices for the panel B.
-
-        getSRRxRymats_(Smat_panB, Rmat_panB, Rxmat_panB, Rymat_panB, x, y);
-
-        // Get the integration points in the ribs coordinate system.
-
-        x = ipxcoords_rib(0,ip);
-        y = ipxcoords_rib(1,ip); 
-
-        // Get the Nr, Nc and Nh matrices for the rib.
-
-        getNrNcNhmats_(Nr_rib, Nc_rib, Nh_rib, xcoords_rib, Area_rib, x, y);
-
-        // Get the Nu and Nv matrices for the rib.
-
-        getNuNvmats_(Nu_rib, Nv_rib, Nr_rib, Hr_rib, Nc_rib, Hc_rib, Nh_rib, Hh_rib);
-
-        // Get the S, R, Rx and Ry matrices for the ribs.
-
-        getSRRxRymats_(Smat_rib, Rmat_rib, Rxmat_rib, Rymat_rib, x, y);
-
-        // Get the Nw, Nthetax and Nthetay matrices for the panel A, panel B and ribs.
-          
-        BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
-        Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
-        Nthetax_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
-        Nthetay_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
-
-        BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
-        Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
-        Nthetax_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
-        Nthetay_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
-
-        BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
-        Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
-        Nthetax_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
-        Nthetay_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
-
-        // Assemble the BCD matrix of the structural cohesive element.
-
-        BCDmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCDmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panA(0,ALL);
-        BCDmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCDmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panB(0,ALL);
-        BCDmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nv_rib(0,ALL);
-        BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-
-        BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
-        BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetax_panA(0,ALL);
-        BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
-        BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panB(0,ALL);
-        BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
-        BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-        
-        BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
-        BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetay_panA(0,ALL);
-        BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
-        BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panB(0,ALL);
-        BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
-
-        // Assemble the BCT matrix of the structural cohesive element.
-
-        BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetay_rib(0,ALL);
-
-        BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panA(0,ALL);
-        BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panB(0,ALL);
-        BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetax_rib(0,ALL);
-        
-        BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panA(0,ALL);
-        BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panB(0,ALL);
-        BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-
         // Get the integration point in the ribs through the thickness direction.
 
         z_rib = jpxcoords(0,jp);
@@ -992,69 +1029,36 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
 
         jump = matmul ( BCmat, elemxDisp );
 
-        // // Print the contents of the jump[0] for debugging purposes.
-        // jem::System::out() << jump[0] << " ";
-
-        // // Print the contents of the jump vector for debugging purposes.
-        // for ( idx_t i = 0; i < jump.size(0); i++ )
-        // {
-        //   jem::System::out() << "Jump[" << i << "] = " << jump[i] << " ";
-        //   jem::System::out() << "\n";
-        // }
-
-        D_I[((ipCount_*jpCount_-1) - (jpCount_*ip + jp))] = jump[0];
+        // D_I[((ipCount_*jpCount_-1) - (jpCount_*ip + jp))] = jump[0];
 
         // Get the tangent stiffness matrix and the traction
         coheMat_->update ( traction, stiff, jump, ipoint++ );
 
-        // // Print the contents of the traction vector for debugging purposes.
-        // for ( idx_t i = 0; i < traction.size(0); i++ )
-        // {
-        //   jem::System::out() << "traction[" << i << "] = " << traction[i] << " ";
-        //   jem::System::out() << "\n";
-        // }
-
-        // // Print the contents of the ipcoords2D(0,:) for debugging purposes.
-        // jem::System::out() << ipcoords2D(0,((ipCount_-1)-ip)) << " ";
-
-        T_I[((ipCount_*jpCount_-1) - (jpCount_*ip + jp))] = traction[0];
+        // T_I[((ipCount_*jpCount_-1) - (jpCount_*ip + jp))] = traction[0];
 
         // Compute the element force vector in the Local coordinate system.
 
         elemxForce += ipWeights[ip] * jpWeights[jp] * mc1.matmul ( BCmat.transpose(), traction );
 
-        // // Print the contents of the elemxForce vector for debugging purposes.
-        // for ( idx_t i = 0; i < elemxForce.size(0); i++ )
-        // {
-        //   jem::System::out() << "elemForce[" << i << "] = " << elemxForce[i] << " ";
-        //   jem::System::out() << "\n";
-        // }
-
         // Compute the stiffness matrix in the Local coordinate system.
         
         elemxMat += ipWeights[ip] * jpWeights[jp] * mc3.matmul ( BCmat.transpose(), stiff, BCmat );
       }
+      // // Print the contents of the ipcoords2D(0,:) for debugging purposes.
+      // jem::System::out() << ipcoords2D(0,((ipCount_-1)-ip)) << " ";
+
+      // Compute the rotation jump (in local {n,s}-frame)
+      // jump_T = matmul ( BCTmat, elemxDisp );
+      // R_I[((ipCount_-1)-ip)] = jump_T[2];
     }
 
-    // // Print the contents of the D_I vector for debugging purposes.
-    // for ( idx_t i = 0; i < D_I.size(0); i++ )
+    // Print the contents of the R_I vector for debugging purposes.
+    // for ( idx_t i = 0; i < R_I.size(0); i++ )
     // {
-    //   jem::System::out() << D_I[i] << " ";
+    //   jem::System::out() << R_I[i] << " ";
     // }
 
-    // // Print the contents of the T_I vector for debugging purposes.
-    // for ( idx_t i = 0; i < T_I.size(0); i++ )
-    // {
-    //   jem::System::out() << T_I[i] << " ";
-    // }
-
-    // // Print the contents of the u_top vector for debugging purposes.
-    // for ( idx_t i = 0; i < u_top.size(0); i++ )
-    // {
-    //   jem::System::out() << u_top[i] << " ";
-    // }
-
-    // Reordering the elemForce to match the order in the DOfs in Jive.
+    // Reordering the elemForce to match the order of the DOfs in Jive.
 
     elemxForce0 = 0.0;
     for ( idx_t i = 0; i < dofCount; i++ )
@@ -1062,7 +1066,7 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
       elemxForce0[i]   = elemxForce[Connect[i]];
     }
 
-    // Reordering the elemMat to match the order in the DOfs in Jive.
+    // Reordering the elemMat to match the order of the DOfs in Jive.
 
     elemxMat0 = 0.0;
     for ( idx_t i = 0; i < dofCount; i++ )
@@ -1153,6 +1157,12 @@ void PanelRibsInterface6DofsBFModel::getFrictionForce_
   Matrix      Nr_panA          ( rank_, nodeCount_panrib_ );
   Matrix      Nc_panA          ( rank_, nodeCount_panrib_ );
   Matrix      Nh_panA          ( rank_, nodeCount_panrib_ );
+  Matrix      Nrx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nry_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncy_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhy_panA         ( rank_, nodeCount_panrib_ );
 
   Matrix      b_mem_panB       ( qRank_, 2*nodeCount_panrib_ );
   Vector      Disp_mem_panB    ( 2*nodeCount_panrib_ );
@@ -1166,6 +1176,12 @@ void PanelRibsInterface6DofsBFModel::getFrictionForce_
   Matrix      Nr_panB          ( rank_, nodeCount_panrib_ );
   Matrix      Nc_panB          ( rank_, nodeCount_panrib_ );
   Matrix      Nh_panB          ( rank_, nodeCount_panrib_ );
+  Matrix      Nrx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nry_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncy_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhy_panB         ( rank_, nodeCount_panrib_ );
 
   Matrix      b_mem_rib        ( qRank_, 2*nodeCount_panrib_ );
   Vector      Disp_mem_rib     ( 2*nodeCount_panrib_ );
@@ -1230,19 +1246,23 @@ void PanelRibsInterface6DofsBFModel::getFrictionForce_
 
   Matrix      Nu_panA          ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_panA          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panA         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panA         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panA         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panA         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nu_panB          ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_panB          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panB         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panB         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panB         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panB         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nu_rib           ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_rib           ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_rib      ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_rib          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_rib          ( 1, 3 * nodeCount_panrib_ );
 
   Vector      elemForce    ( dofCount  );
   Vector      elemxForce   ( dofCount  );
@@ -1307,7 +1327,7 @@ void PanelRibsInterface6DofsBFModel::getFrictionForce_
 
   thick_shape_->getIntegrationWeights ( jpWeights, thick_xcoords );
 
-  // DOFs connectivity from Jive to the paper from Ai et al. 2024.
+  // Dofs connectivity from the Jive order to the shell-shell cohesive line element order.
 
   getConnectivity_ ( Connect, ConnectInv );
 
@@ -1464,7 +1484,7 @@ void PanelRibsInterface6DofsBFModel::getFrictionForce_
 
     getMembraneDisp_(Disp_mem_panA, Disp_mem_panB, Disp_mem_rib, elemxDisp0);
 
-    // Reordering the DOFs to match the order in the paper from Ai et al. 2024.
+    // Reordering the Dofs to match the order in the shell-shell cohesive line element.
 
     elemxDisp = 0.0;
     for ( idx_t i = 0; i < dofCount; i++ )
@@ -1478,172 +1498,199 @@ void PanelRibsInterface6DofsBFModel::getFrictionForce_
 
     for ( idx_t ip = 0; ip < ipCount_; ip++ )
     {
+      // Get the C matrix for the panel and ribs.
+
+      for ( idx_t ip_panrib = 0; ip_panrib < ipCount_panrib_; ip_panrib++ )
+      {
+        // Get the plate stiffness matrix for the panel A, panel B and ribs.
+        
+        getShapeGrads_ ( b_mem_panA, grads_panA(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_panA, b_mem_panA, Disp_mem_panA );
+        material_[0]->update ( stress_mem_panA, stiff_panA, strain_mem_panA, ipoint_panA++ );
+        D_plate_panA = stiff_panA*(pow(thickness_[0], 3))/12.0;
+
+        getShapeGrads_ ( b_mem_panB, grads_panB(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_panB, b_mem_panB, Disp_mem_panB );
+        material_[0]->update ( stress_mem_panB, stiff_panB, strain_mem_panB, ipoint_panB++ );
+        D_plate_panB = stiff_panB*(pow(thickness_[0], 3))/12.0;
+
+        getShapeGrads_ ( b_mem_rib, grads_rib(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_rib, b_mem_rib, Disp_mem_rib );
+        material_[1]->update ( stress_mem_rib, stiff_rib, strain_mem_rib, ipoint_rib++ );
+        D_plate_rib = stiff_rib*(pow(thickness_[1], 3))/12.0;
+
+        // Get the H matrix for the panel A, panel B and ribs.
+
+        getHmatAnalytic_(Hmat_panA, D_plate_panA, xcoords_panA);
+        Hinv_panA = Hmat_panA;
+        jem::numeric::Cholesky::invert(Hinv_panA);
+
+        getHmatAnalytic_(Hmat_panB, D_plate_panB, xcoords_panB);
+        Hinv_panB = Hmat_panB;
+        jem::numeric::Cholesky::invert(Hinv_panB);
+
+        getHmatAnalytic_(Hmat_rib, D_plate_rib, xcoords_rib);
+        Hinv_rib = Hmat_rib;
+        jem::numeric::Cholesky::invert(Hinv_rib);
+
+        // Get the B and C matrices for the panel A, panel B and ribs.
+
+        getBmat_(Bmat_panA, D_plate_panA, xcoords_panA);
+        Cmat_panA = mc3.matmul ( Hinv_panA, Bmat_panA, Tmat_panA );
+
+        getBmat_(Bmat_panB, D_plate_panB, xcoords_panB);
+        Cmat_panB = mc3.matmul ( Hinv_panB, Bmat_panB, Tmat_panB );
+
+        getBmat_(Bmat_rib, D_plate_rib, xcoords_rib);
+        Cmat_rib = mc3.matmul ( Hinv_rib, Bmat_rib, Tmat_rib );
+      }
+
+      double x, y, z_rib;
+
+      // Get the integration points in the panel A coordinate system.
+
+      x = ipxcoords_panA(0,ip);
+      y = ipxcoords_panA(1,ip);
+
+      // Get the Nr, Nc and Nh matrices for the panel A.
+
+      getNrNcNhmats_(Nr_panA, Nc_panA, Nh_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nu and Nv matrices for the panel A.
+
+      getNuNvmats_(Nu_panA, Nv_panA, Nr_panA, Hr_panA, Nc_panA, Hc_panA, Nh_panA, Hh_panA);
+
+      // Get the Nrx, Ncx and Nhx matrices for the panel A.
+
+      getNrxNcxNhxmats_(Nrx_panA, Ncx_panA, Nhx_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nry, Ncy and Nhy matrices for the panel A.
+
+      getNryNcyNhymats_(Nry_panA, Ncy_panA, Nhy_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nvx and Nuy matrices for the panel A.
+
+      getNvxmat_(Nvx_panA, Nrx_panA, Hr_panA, Ncx_panA, Hc_panA, Nhx_panA, Hh_panA);
+
+      getNuymat_(Nuy_panA, Nry_panA, Hr_panA, Ncy_panA, Hc_panA, Nhy_panA, Hh_panA);
+
+      // Get the S, R, Rx and Ry matrices for the panel A.
+
+      getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
+
+      // Get the integration points in the panel B coordinate system.
+
+      x = ipxcoords_panB(0,ip);
+      y = ipxcoords_panB(1,ip);
+
+      // Get the Nr, Nc and Nh matrices for the panel B.
+
+      getNrNcNhmats_(Nr_panB, Nc_panB, Nh_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nu and Nv matrices for the panel B.
+
+      getNuNvmats_(Nu_panB, Nv_panB, Nr_panB, Hr_panB, Nc_panB, Hc_panB, Nh_panB, Hh_panB);
+
+      // Get the Nrx, Ncx and Nhx matrices for the panel B.
+
+      getNrxNcxNhxmats_(Nrx_panB, Ncx_panB, Nhx_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nry, Ncy and Nhy matrices for the panel B.
+
+      getNryNcyNhymats_(Nry_panB, Ncy_panB, Nhy_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nvx and Nuy matrices for the panel B.
+
+      getNvxmat_(Nvx_panB, Nrx_panB, Hr_panB, Ncx_panB, Hc_panB, Nhx_panB, Hh_panB);
+
+      getNuymat_(Nuy_panB, Nry_panB, Hr_panB, Ncy_panB, Hc_panB, Nhy_panB, Hh_panB);
+
+      // Get the S, R, Rx and Ry matrices for the panel B.
+
+      getSRRxRymats_(Smat_panB, Rmat_panB, Rxmat_panB, Rymat_panB, x, y);
+
+      // Get the integration points in the ribs coordinate system.
+
+      x = ipxcoords_rib(0,ip);
+      y = ipxcoords_rib(1,ip); 
+
+      // Get the Nr, Nc and Nh matrices for the rib.
+
+      getNrNcNhmats_(Nr_rib, Nc_rib, Nh_rib, xcoords_rib, Area_rib, x, y);
+
+      // Get the Nu and Nv matrices for the rib.
+
+      getNuNvmats_(Nu_rib, Nv_rib, Nr_rib, Hr_rib, Nc_rib, Hc_rib, Nh_rib, Hh_rib);
+
+      // Get the S, R, Rx and Ry matrices for the ribs.
+
+      getSRRxRymats_(Smat_rib, Rmat_rib, Rxmat_rib, Rymat_rib, x, y);
+
+      // Get the Nw, Nwx and Nwy matrices for the panel A, panel B and ribs.
+        
+      BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
+      Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
+      Nwx_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
+      Nwy_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
+
+      BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
+      Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
+      Nwx_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
+      Nwy_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
+
+      BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
+      Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
+      Nwx_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
+      Nwy_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
+
+      // Assemble the BCE matrix of the structural cohesive element.
+
+      BCDmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCDmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panA(0,ALL);
+      BCDmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCDmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panB(0,ALL);
+      BCDmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nv_rib(0,ALL);
+      BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
+      BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
+      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panA(0,ALL);
+      BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
+      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panB(0,ALL);
+      BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
+      BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+      
+      BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
+      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panA(0,ALL);
+      BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
+      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panB(0,ALL);
+      BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
+
+      // Assemble the BCT matrix of the structural cohesive element.
+
+      BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panA(0,ALL);
+      BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panB(0,ALL);
+      BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwy_rib(0,ALL);
+
+      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panA(0,ALL)-Nuy_panA(0,ALL));
+      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panB(0,ALL)-Nuy_panB(0,ALL));
+      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwx_rib(0,ALL);
+      
+      BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
       for ( idx_t jp = 0; jp < jpCount_; jp++ )
       {
-
-        // Get the C matrix for the panel and ribs.
-
-        for ( idx_t ip_panrib = 0; ip_panrib < ipCount_panrib_; ip_panrib++ )
-        {
-          // Get the plate stiffness matrix for the panel A, panel B and ribs.
-          
-          getShapeGrads_ ( b_mem_panA, grads_panA(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_panA, b_mem_panA, Disp_mem_panA );
-          material_[0]->update ( stress_mem_panA, stiff_panA, strain_mem_panA, ipoint_panA++ );
-          D_plate_panA = stiff_panA*(pow(thickness_[0], 3))/12.0;
-
-          getShapeGrads_ ( b_mem_panB, grads_panB(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_panB, b_mem_panB, Disp_mem_panB );
-          material_[0]->update ( stress_mem_panB, stiff_panB, strain_mem_panB, ipoint_panB++ );
-          D_plate_panB = stiff_panB*(pow(thickness_[0], 3))/12.0;
-
-          getShapeGrads_ ( b_mem_rib, grads_rib(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_rib, b_mem_rib, Disp_mem_rib );
-          material_[1]->update ( stress_mem_rib, stiff_rib, strain_mem_rib, ipoint_rib++ );
-          D_plate_rib = stiff_rib*(pow(thickness_[1], 3))/12.0;
-
-          // Get the H matrix for the panel A, panel B and ribs.
-
-          getHmatAnalytic_(Hmat_panA, D_plate_panA, xcoords_panA);
-          Hinv_panA = Hmat_panA;
-          jem::numeric::Cholesky::invert(Hinv_panA);
-
-          getHmatAnalytic_(Hmat_panB, D_plate_panB, xcoords_panB);
-          Hinv_panB = Hmat_panB;
-          jem::numeric::Cholesky::invert(Hinv_panB);
-
-          getHmatAnalytic_(Hmat_rib, D_plate_rib, xcoords_rib);
-          Hinv_rib = Hmat_rib;
-          jem::numeric::Cholesky::invert(Hinv_rib);
-
-          // Get the B and C matrices for the panel A, panel B and ribs.
-
-          getBmat_(Bmat_panA, D_plate_panA, xcoords_panA);
-          Cmat_panA = mc3.matmul ( Hinv_panA, Bmat_panA, Tmat_panA );
-
-          getBmat_(Bmat_panB, D_plate_panB, xcoords_panB);
-          Cmat_panB = mc3.matmul ( Hinv_panB, Bmat_panB, Tmat_panB );
-
-          getBmat_(Bmat_rib, D_plate_rib, xcoords_rib);
-          Cmat_rib = mc3.matmul ( Hinv_rib, Bmat_rib, Tmat_rib );
-        }
-
-        double x, y, z_rib;
-
-        // Get the integration points in the panel A coordinate system.
-
-        x = ipxcoords_panA(0,ip);
-        y = ipxcoords_panA(1,ip);
-
-        // Get the Nr, Nc and Nh matrices for the panel A.
-
-        getNrNcNhmats_(Nr_panA, Nc_panA, Nh_panA, xcoords_panA, Area_panA, x, y);
-
-        // Get the Nu and Nv matrices for the panel A.
-
-        getNuNvmats_(Nu_panA, Nv_panA, Nr_panA, Hr_panA, Nc_panA, Hc_panA, Nh_panA, Hh_panA);
-
-        // Get the S, R, Rx and Ry matrices for the panel A.
-
-        getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
-
-        // Get the integration points in the panel B coordinate system.
-
-        x = ipxcoords_panB(0,ip);
-        y = ipxcoords_panB(1,ip);
-
-        // Get the Nr, Nc and Nh matrices for the panel B.
-
-        getNrNcNhmats_(Nr_panB, Nc_panB, Nh_panB, xcoords_panB, Area_panB, x, y);
-
-        // Get the Nu and Nv matrices for the panel B.
-
-        getNuNvmats_(Nu_panB, Nv_panB, Nr_panB, Hr_panB, Nc_panB, Hc_panB, Nh_panB, Hh_panB);
-
-        // Get the S, R, Rx and Ry matrices for the panel B.
-
-        getSRRxRymats_(Smat_panB, Rmat_panB, Rxmat_panB, Rymat_panB, x, y);
-
-        // Get the integration points in the ribs coordinate system.
-
-        x = ipxcoords_rib(0,ip);
-        y = ipxcoords_rib(1,ip); 
-
-        // Get the Nr, Nc and Nh matrices for the rib.
-
-        getNrNcNhmats_(Nr_rib, Nc_rib, Nh_rib, xcoords_rib, Area_rib, x, y);
-
-        // Get the Nu and Nv matrices for the rib.
-
-        getNuNvmats_(Nu_rib, Nv_rib, Nr_rib, Hr_rib, Nc_rib, Hc_rib, Nh_rib, Hh_rib);
-
-        // Get the S, R, Rx and Ry matrices for the ribs.
-
-        getSRRxRymats_(Smat_rib, Rmat_rib, Rxmat_rib, Rymat_rib, x, y);
-
-        // Get the Nw, Nthetax and Nthetay matrices for the panel A, panel B and ribs.
-          
-        BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
-        Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
-        Nthetax_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
-        Nthetay_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
-
-        BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
-        Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
-        Nthetax_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
-        Nthetay_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
-
-        BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
-        Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
-        Nthetax_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
-        Nthetay_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
-
-        // Assemble the BCE matrix of the structural cohesive element.
-
-        BCDmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCDmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panA(0,ALL);
-        BCDmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCDmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panB(0,ALL);
-        BCDmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nv_rib(0,ALL);
-        BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-
-        BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
-        BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panA(0,ALL);
-        BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
-        BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panB(0,ALL);
-        BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
-        BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-        
-        BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
-        BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panA(0,ALL);
-        BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
-        BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panB(0,ALL);
-        BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
-
-        // Assemble the BCT matrix of the structural cohesive element.
-
-        BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetay_rib(0,ALL);
-
-        BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panA(0,ALL);
-        BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panB(0,ALL);
-        BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetax_rib(0,ALL);
-        
-        BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panA(0,ALL);
-        BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panB(0,ALL);
-        BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-
         // Get the integration point in the ribs through the thickness direction.
 
         z_rib = jpxcoords(0,jp);
@@ -1666,7 +1713,7 @@ void PanelRibsInterface6DofsBFModel::getFrictionForce_
       }
     }
 
-    // Reordering the elemxForce to match the order in the DOfs in Jive.
+    // Reordering the elemForce to match the order of the DOfs in Jive.
 
     elemxForce0 = 0.0;
     for ( idx_t i = 0; i < dofCount; i++ )
@@ -1737,6 +1784,12 @@ void PanelRibsInterface6DofsBFModel::writeOutput_
   Matrix      Nr_panA          ( rank_, nodeCount_panrib_ );
   Matrix      Nc_panA          ( rank_, nodeCount_panrib_ );
   Matrix      Nh_panA          ( rank_, nodeCount_panrib_ );
+  Matrix      Nrx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhx_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nry_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncy_panA         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhy_panA         ( rank_, nodeCount_panrib_ );
 
   Matrix      b_mem_panB       ( qRank_, 2*nodeCount_panrib_ );
   Vector      Disp_mem_panB    ( 2*nodeCount_panrib_ );
@@ -1750,6 +1803,12 @@ void PanelRibsInterface6DofsBFModel::writeOutput_
   Matrix      Nr_panB          ( rank_, nodeCount_panrib_ );
   Matrix      Nc_panB          ( rank_, nodeCount_panrib_ );
   Matrix      Nh_panB          ( rank_, nodeCount_panrib_ );
+  Matrix      Nrx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhx_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nry_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Ncy_panB         ( rank_, nodeCount_panrib_ );
+  Matrix      Nhy_panB         ( rank_, nodeCount_panrib_ );
 
   Matrix      b_mem_rib        ( qRank_, 2*nodeCount_panrib_ );
   Vector      Disp_mem_rib     ( 2*nodeCount_panrib_ );
@@ -1814,19 +1873,23 @@ void PanelRibsInterface6DofsBFModel::writeOutput_
 
   Matrix      Nu_panA          ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_panA          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panA         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panA         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panA         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panA         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nu_panB          ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_panB          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panB         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panB         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panB         ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panB         ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nu_rib           ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nv_rib           ( 1, 3 * nodeCount_panrib_ );
   Matrix      Nw_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_rib      ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_rib          ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_rib          ( 1, 3 * nodeCount_panrib_ );
 
   Vector      elemxDisp    ( dofCount  );
 
@@ -1893,7 +1956,7 @@ void PanelRibsInterface6DofsBFModel::writeOutput_
 
   thick_shape_->getIntegrationWeights ( jpWeights, thick_xcoords );
 
-  // DOFs connectivity from Jive to the paper from Ai et al. 2024.
+  // Dofs connectivity from the Jive order to the shell-shell cohesive line element order.
 
   getConnectivity_ ( Connect, ConnectInv );
 
@@ -2050,7 +2113,7 @@ void PanelRibsInterface6DofsBFModel::writeOutput_
 
     getMembraneDisp_(Disp_mem_panA, Disp_mem_panB, Disp_mem_rib, elemxDisp0);
 
-    // Reordering the DOFs to match the order in the paper from Ai et al. 2024.
+    // Reordering the Dofs to match the order in the shell-shell cohesive line element.
 
     elemxDisp = 0.0;
     for ( idx_t i = 0; i < dofCount; i++ )
@@ -2062,172 +2125,199 @@ void PanelRibsInterface6DofsBFModel::writeOutput_
 
     for ( idx_t ip = 0; ip < ipCount_; ip++ )
     {
+      // Get the C matrix for the panel and ribs.
+
+      for ( idx_t ip_panrib = 0; ip_panrib < ipCount_panrib_; ip_panrib++ )
+      {
+        // Get the plate stiffness matrix for the panel A, panel B and ribs.
+        
+        getShapeGrads_ ( b_mem_panA, grads_panA(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_panA, b_mem_panA, Disp_mem_panA );
+        material_[0]->update ( stress_mem_panA, stiff_panA, strain_mem_panA, ipoint_panA++ );
+        D_plate_panA = stiff_panA*(pow(thickness_[0], 3))/12.0;
+
+        getShapeGrads_ ( b_mem_panB, grads_panB(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_panB, b_mem_panB, Disp_mem_panB );
+        material_[0]->update ( stress_mem_panB, stiff_panB, strain_mem_panB, ipoint_panB++ );
+        D_plate_panB = stiff_panB*(pow(thickness_[0], 3))/12.0;
+
+        getShapeGrads_ ( b_mem_rib, grads_rib(ALL,ALL,ip_panrib) );
+        matmul ( strain_mem_rib, b_mem_rib, Disp_mem_rib );
+        material_[1]->update ( stress_mem_rib, stiff_rib, strain_mem_rib, ipoint_rib++ );
+        D_plate_rib = stiff_rib*(pow(thickness_[1], 3))/12.0;
+
+        // Get the H matrix for the panel A, panel B and ribs.
+
+        getHmatAnalytic_(Hmat_panA, D_plate_panA, xcoords_panA);
+        Hinv_panA = Hmat_panA;
+        jem::numeric::Cholesky::invert(Hinv_panA);
+
+        getHmatAnalytic_(Hmat_panB, D_plate_panB, xcoords_panB);
+        Hinv_panB = Hmat_panB;
+        jem::numeric::Cholesky::invert(Hinv_panB);
+
+        getHmatAnalytic_(Hmat_rib, D_plate_rib, xcoords_rib);
+        Hinv_rib = Hmat_rib;
+        jem::numeric::Cholesky::invert(Hinv_rib);
+
+        // Get the B and C matrices for the panel A, panel B and ribs.
+
+        getBmat_(Bmat_panA, D_plate_panA, xcoords_panA);
+        Cmat_panA = mc3.matmul ( Hinv_panA, Bmat_panA, Tmat_panA );
+
+        getBmat_(Bmat_panB, D_plate_panB, xcoords_panB);
+        Cmat_panB = mc3.matmul ( Hinv_panB, Bmat_panB, Tmat_panB );
+
+        getBmat_(Bmat_rib, D_plate_rib, xcoords_rib);
+        Cmat_rib = mc3.matmul ( Hinv_rib, Bmat_rib, Tmat_rib );
+      }
+
+      double x, y, z_rib;
+
+      // Get the integration points in the panel A coordinate system.
+
+      x = ipxcoords_panA(0,ip);
+      y = ipxcoords_panA(1,ip);
+
+      // Get the Nr, Nc and Nh matrices for the panel A.
+
+      getNrNcNhmats_(Nr_panA, Nc_panA, Nh_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nu and Nv matrices for the panel A.
+
+      getNuNvmats_(Nu_panA, Nv_panA, Nr_panA, Hr_panA, Nc_panA, Hc_panA, Nh_panA, Hh_panA);
+
+      // Get the Nrx, Ncx and Nhx matrices for the panel A.
+
+      getNrxNcxNhxmats_(Nrx_panA, Ncx_panA, Nhx_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nry, Ncy and Nhy matrices for the panel A.
+
+      getNryNcyNhymats_(Nry_panA, Ncy_panA, Nhy_panA, xcoords_panA, Area_panA, x, y);
+
+      // Get the Nvx and Nuy matrices for the panel A.
+
+      getNvxmat_(Nvx_panA, Nrx_panA, Hr_panA, Ncx_panA, Hc_panA, Nhx_panA, Hh_panA);
+
+      getNuymat_(Nuy_panA, Nry_panA, Hr_panA, Ncy_panA, Hc_panA, Nhy_panA, Hh_panA);
+
+      // Get the S, R, Rx and Ry matrices for the panel A.
+
+      getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
+
+      // Get the integration points in the panel B coordinate system.
+
+      x = ipxcoords_panB(0,ip);
+      y = ipxcoords_panB(1,ip);
+
+      // Get the Nr, Nc and Nh matrices for the panel B.
+
+      getNrNcNhmats_(Nr_panB, Nc_panB, Nh_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nu and Nv matrices for the panel B.
+
+      getNuNvmats_(Nu_panB, Nv_panB, Nr_panB, Hr_panB, Nc_panB, Hc_panB, Nh_panB, Hh_panB);
+
+      // Get the Nrx, Ncx and Nhx matrices for the panel B.
+
+      getNrxNcxNhxmats_(Nrx_panB, Ncx_panB, Nhx_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nry, Ncy and Nhy matrices for the panel B.
+
+      getNryNcyNhymats_(Nry_panB, Ncy_panB, Nhy_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nvx and Nuy matrices for the panel B.
+
+      getNvxmat_(Nvx_panB, Nrx_panB, Hr_panB, Ncx_panB, Hc_panB, Nhx_panB, Hh_panB);
+
+      getNuymat_(Nuy_panB, Nry_panB, Hr_panB, Ncy_panB, Hc_panB, Nhy_panB, Hh_panB);
+
+      // Get the S, R, Rx and Ry matrices for the panel B.
+
+      getSRRxRymats_(Smat_panB, Rmat_panB, Rxmat_panB, Rymat_panB, x, y);
+
+      // Get the integration points in the ribs coordinate system.
+
+      x = ipxcoords_rib(0,ip);
+      y = ipxcoords_rib(1,ip); 
+
+      // Get the Nr, Nc and Nh matrices for the rib.
+
+      getNrNcNhmats_(Nr_rib, Nc_rib, Nh_rib, xcoords_rib, Area_rib, x, y);
+
+      // Get the Nu and Nv matrices for the rib.
+
+      getNuNvmats_(Nu_rib, Nv_rib, Nr_rib, Hr_rib, Nc_rib, Hc_rib, Nh_rib, Hh_rib);
+
+      // Get the S, R, Rx and Ry matrices for the ribs.
+
+      getSRRxRymats_(Smat_rib, Rmat_rib, Rxmat_rib, Rymat_rib, x, y);
+
+      // Get the Nw, Nwx and Nwy matrices for the panel A, panel B and ribs.
+        
+      BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
+      Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
+      Nwx_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
+      Nwy_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
+
+      BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
+      Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
+      Nwx_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
+      Nwy_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
+
+      BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
+      Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
+      Nwx_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
+      Nwy_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
+
+      // Assemble the BCD matrix of the structural cohesive element.
+
+      BCDmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCDmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panA(0,ALL);
+      BCDmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCDmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panB(0,ALL);
+      BCDmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nv_rib(0,ALL);
+      BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
+      BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
+      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panA(0,ALL);
+      BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
+      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panB(0,ALL);
+      BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
+      BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+      
+      BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
+      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panA(0,ALL);
+      BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
+      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panB(0,ALL);
+      BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
+    
+      // Assemble the BCT matrix of the structural cohesive element.
+
+      BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panA(0,ALL);
+      BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panB(0,ALL);
+      BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwy_rib(0,ALL);
+
+      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panA(0,ALL)-Nuy_panA(0,ALL));
+      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panB(0,ALL)-Nuy_panB(0,ALL));
+      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwx_rib(0,ALL);
+      
+      BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
+      BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
       for ( idx_t jp = 0; jp < jpCount_; jp++ )
       {
-        
-        // Get the C matrix for the panel and ribs.
-
-        for ( idx_t ip_panrib = 0; ip_panrib < ipCount_panrib_; ip_panrib++ )
-        {
-          // Get the plate stiffness matrix for the panel A, panel B and ribs.
-          
-          getShapeGrads_ ( b_mem_panA, grads_panA(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_panA, b_mem_panA, Disp_mem_panA );
-          material_[0]->update ( stress_mem_panA, stiff_panA, strain_mem_panA, ipoint_panA++ );
-          D_plate_panA = stiff_panA*(pow(thickness_[0], 3))/12.0;
-
-          getShapeGrads_ ( b_mem_panB, grads_panB(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_panB, b_mem_panB, Disp_mem_panB );
-          material_[0]->update ( stress_mem_panB, stiff_panB, strain_mem_panB, ipoint_panB++ );
-          D_plate_panB = stiff_panB*(pow(thickness_[0], 3))/12.0;
-
-          getShapeGrads_ ( b_mem_rib, grads_rib(ALL,ALL,ip_panrib) );
-          matmul ( strain_mem_rib, b_mem_rib, Disp_mem_rib );
-          material_[1]->update ( stress_mem_rib, stiff_rib, strain_mem_rib, ipoint_rib++ );
-          D_plate_rib = stiff_rib*(pow(thickness_[1], 3))/12.0;
-
-          // Get the H matrix for the panel A, panel B and ribs.
-
-          getHmatAnalytic_(Hmat_panA, D_plate_panA, xcoords_panA);
-          Hinv_panA = Hmat_panA;
-          jem::numeric::Cholesky::invert(Hinv_panA);
-
-          getHmatAnalytic_(Hmat_panB, D_plate_panB, xcoords_panB);
-          Hinv_panB = Hmat_panB;
-          jem::numeric::Cholesky::invert(Hinv_panB);
-
-          getHmatAnalytic_(Hmat_rib, D_plate_rib, xcoords_rib);
-          Hinv_rib = Hmat_rib;
-          jem::numeric::Cholesky::invert(Hinv_rib);
-
-          // Get the B and C matrices for the panel A, panel B and ribs.
-
-          getBmat_(Bmat_panA, D_plate_panA, xcoords_panA);
-          Cmat_panA = mc3.matmul ( Hinv_panA, Bmat_panA, Tmat_panA );
-
-          getBmat_(Bmat_panB, D_plate_panB, xcoords_panB);
-          Cmat_panB = mc3.matmul ( Hinv_panB, Bmat_panB, Tmat_panB );
-
-          getBmat_(Bmat_rib, D_plate_rib, xcoords_rib);
-          Cmat_rib = mc3.matmul ( Hinv_rib, Bmat_rib, Tmat_rib );
-        }
-
-        double x, y, z_rib;
-
-        // Get the integration points in the panel A coordinate system.
-
-        x = ipxcoords_panA(0,ip);
-        y = ipxcoords_panA(1,ip);
-
-        // Get the Nr, Nc and Nh matrices for the panel A.
-
-        getNrNcNhmats_(Nr_panA, Nc_panA, Nh_panA, xcoords_panA, Area_panA, x, y);
-
-        // Get the Nu and Nv matrices for the panel A.
-
-        getNuNvmats_(Nu_panA, Nv_panA, Nr_panA, Hr_panA, Nc_panA, Hc_panA, Nh_panA, Hh_panA);
-
-        // Get the S, R, Rx and Ry matrices for the panel A.
-
-        getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
-
-        // Get the integration points in the panel B coordinate system.
-
-        x = ipxcoords_panB(0,ip);
-        y = ipxcoords_panB(1,ip);
-
-        // Get the Nr, Nc and Nh matrices for the panel B.
-
-        getNrNcNhmats_(Nr_panB, Nc_panB, Nh_panB, xcoords_panB, Area_panB, x, y);
-
-        // Get the Nu and Nv matrices for the panel B.
-
-        getNuNvmats_(Nu_panB, Nv_panB, Nr_panB, Hr_panB, Nc_panB, Hc_panB, Nh_panB, Hh_panB);
-
-        // Get the S, R, Rx and Ry matrices for the panel B.
-
-        getSRRxRymats_(Smat_panB, Rmat_panB, Rxmat_panB, Rymat_panB, x, y);
-
-        // Get the integration points in the ribs coordinate system.
-
-        x = ipxcoords_rib(0,ip);
-        y = ipxcoords_rib(1,ip); 
-
-        // Get the Nr, Nc and Nh matrices for the rib.
-
-        getNrNcNhmats_(Nr_rib, Nc_rib, Nh_rib, xcoords_rib, Area_rib, x, y);
-
-        // Get the Nu and Nv matrices for the rib.
-
-        getNuNvmats_(Nu_rib, Nv_rib, Nr_rib, Hr_rib, Nc_rib, Hc_rib, Nh_rib, Hh_rib);
-
-        // Get the S, R, Rx and Ry matrices for the ribs.
-
-        getSRRxRymats_(Smat_rib, Rmat_rib, Rxmat_rib, Rymat_rib, x, y);
-
-        // Get the Nw, Nthetax and Nthetay matrices for the panel A, panel B and ribs.
-          
-        BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
-        Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
-        Nthetax_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
-        Nthetay_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
-
-        BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
-        Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
-        Nthetax_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
-        Nthetay_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
-
-        BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
-        Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
-        Nthetax_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
-        Nthetay_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
-
-        // Assemble the BCD matrix of the structural cohesive element.
-
-        BCDmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCDmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panA(0,ALL);
-        BCDmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCDmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nw_panB(0,ALL);
-        BCDmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nv_rib(0,ALL);
-        BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-
-        BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
-        BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panA(0,ALL);
-        BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
-        BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panB(0,ALL);
-        BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
-        BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-        
-        BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
-        BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panA(0,ALL);
-        BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
-        BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panB(0,ALL);
-        BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
-      
-        // Assemble the BCT matrix of the structural cohesive element.
-
-        BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetay_rib(0,ALL);
-
-        BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panA(0,ALL);
-        BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panB(0,ALL);
-        BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetax_rib(0,ALL);
-        
-        BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panA(0,ALL);
-        BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panB(0,ALL);
-        BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-        BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
-
         // Get the integration point in the ribs through the thickness direction.
 
         z_rib = jpxcoords(0,jp);
@@ -2635,13 +2725,28 @@ void PanelRibsInterface6DofsBFModel::getTransMatrixDof_
     const Matrix&     transMat_rib   ) const
 
 {
-  Matrix      transMatBlock ( 2*nodeRank_, 2*nodeRank_ );
+  Matrix      transMat_WiRi   ( nodeRank_, nodeRank_ );
+  Matrix      transMatRot_pan ( nodeRank_, nodeRank_ );
+  Matrix      transMatRot_rib ( nodeRank_, nodeRank_ );
+  Matrix      transMatBlock   ( 2*nodeRank_, 2*nodeRank_ );
+
+  // Get the transformation matrix for rotational Dofs.
+
+  transMat_WiRi = 0.0;
+  transMat_WiRi(0,0) = 0.0;
+  transMat_WiRi(0,1) = -1.0;
+  transMat_WiRi(1,0) = 1.0;
+  transMat_WiRi(1,1) = 0.0;
+  transMat_WiRi(2,2) = 1.0;
+
+  transMatRot_pan = matmul ( transMat_WiRi, transMat_pan );
+  transMatRot_rib = matmul ( transMat_WiRi, transMat_rib );
 
   // Get the transformation matrix of the Dofs of a single node for the panel local system.
 
   transMatBlock = 0.0;
   transMatBlock(slice(0,nodeRank_),slice(0,nodeRank_)) = transMat_pan;
-  transMatBlock(slice(nodeRank_,2*nodeRank_),slice(nodeRank_,2*nodeRank_)) = transMat_pan;
+  transMatBlock(slice(nodeRank_,2*nodeRank_),slice(nodeRank_,2*nodeRank_)) = transMatRot_pan;
 
   transMatDof = 0.0;
 
@@ -2659,7 +2764,7 @@ void PanelRibsInterface6DofsBFModel::getTransMatrixDof_
 
   transMatBlock = 0.0;
   transMatBlock(slice(0,nodeRank_),slice(0,nodeRank_)) = transMat_rib;
-  transMatBlock(slice(nodeRank_,2*nodeRank_),slice(nodeRank_,2*nodeRank_)) = transMat_rib;
+  transMatBlock(slice(nodeRank_,2*nodeRank_),slice(nodeRank_,2*nodeRank_)) = transMatRot_rib;
 
   // Get the ribs part of the 54x54 transformation matrix of the nodal element Dofs.
 
@@ -3749,6 +3854,270 @@ void PanelRibsInterface6DofsBFModel::getNuNvmats_
   // Compute the Nu and Nv matrices
   Nu = Nuv(slice(0,1),slice(0,3*nodeCount_panrib_)); 
   Nv = Nuv(slice(1,2),slice(0,3*nodeCount_panrib_)); 
+}
+
+
+//-----------------------------------------------------------------------
+//   getNrxNcxNhxmats_
+//-----------------------------------------------------------------------
+
+
+void PanelRibsInterface6DofsBFModel::getNrxNcxNhxmats_
+
+  ( Matrix&  Nrx,
+    Matrix&  Ncx,
+    Matrix&  Nhx,
+    const Matrix&   xcoords,
+    const double&   Area,
+    const double&   x,
+    const double&   y ) const
+  
+{
+  double lambda;
+  double x_c, y_c;
+
+  double xi;
+  double eta;
+
+  Vector Xi  ( nodeRank_ );
+  Vector Eta ( nodeRank_ );
+  Vector xm  ( nodeCount_panrib_ );
+  Vector ym  ( nodeCount_panrib_ );
+  Vector lm  ( nodeCount_panrib_ );
+  Vector S   ( nodeCount_panrib_ );
+  Vector C   ( nodeCount_panrib_ );
+  Matrix a   ( nodeRank_, nodeCount_panrib_ );
+  Matrix b   ( nodeRank_, nodeCount_panrib_ );
+
+  // Compute geometric parameters for the Nr and Nc matrices.
+  lambda = 1.0 / sqrt(Area);
+  x_c = (xcoords(0, 0) + xcoords(0, 1) + xcoords(0, 2)) / 3.0;
+  y_c = (xcoords(1, 0) + xcoords(1, 1) + xcoords(1, 2)) / 3.0;
+  xi = lambda*(x - x_c);
+  eta = lambda*(y - y_c);
+
+  // Compute the Nrx matrix
+  Nrx = 0.0;
+  Nrx(1, 2) = lambda;
+
+  // Compute the Ncx matrix
+  Ncx = 0.0;
+  Ncx(0, 0) = lambda;
+  Ncx(1, 2) = lambda;
+
+  // Compute geometric parameters for the Nh matrix.
+  Xi[0] = lambda*(xcoords(0, 0) - x_c);
+  Xi[1] = lambda*(xcoords(0, 1) - x_c);
+  Xi[2] = lambda*(xcoords(0, 2) - x_c);
+  
+  Eta[0] = lambda*(xcoords(1, 0) - y_c);
+  Eta[1] = lambda*(xcoords(1, 1) - y_c);
+  Eta[2] = lambda*(xcoords(1, 2) - y_c);
+
+  xm[0] = (xcoords(0, 1) + xcoords(0, 2)) / 2.0;
+  ym[0] = (xcoords(1, 1) + xcoords(1, 2)) / 2.0;
+  lm[0] = sqrt(pow((xm[0] - xcoords(0, 0)),2) + pow((ym[0] - xcoords(1, 0)),2));
+  S[0] = (ym[0]-xcoords(1, 0)) / lm[0];
+  C[0] = (xm[0]-xcoords(0, 0)) / lm[0];
+  a(0,0) = -(1.0/2.0)*S[0]*pow(C[0],2);
+  a(1,0) = pow(C[0],3);
+  a(2,0) = (1.0/2.0)*pow(S[0],3) + S[0]*pow(C[0],2);
+  b(0,0) = -pow(S[0],2)*C[0] - (1.0/2.0)*pow(C[0],3);
+  b(1,0) = -pow(S[0],3);
+  b(2,0) = (1.0/2.0)*pow(S[0],2)*C[0];
+
+  xm[1] = (xcoords(0, 2) + xcoords(0, 0)) / 2.0;
+  ym[1] = (xcoords(1, 2) + xcoords(1, 0)) / 2.0;
+  lm[1] = sqrt(pow((xm[1] - xcoords(0, 1)),2) + pow((ym[1] - xcoords(1, 1)),2));
+  S[1] = (ym[1] - xcoords(1, 1)) / lm[1];
+  C[1] = (xm[1] - xcoords(0, 1)) / lm[1];
+  a(0,1) = -(1.0/2.0)*S[1]*pow(C[1],2);
+  a(1,1) = pow(C[1],3);
+  a(2,1) = (1.0/2.0)*pow(S[1],3) + S[1]*pow(C[1],2);
+  b(0,1) = -pow(S[1],2)*C[1] - (1.0/2.0)*pow(C[1],3);
+  b(1,1) = -pow(S[1],3);
+  b(2,1) = (1.0/2.0)*pow(S[1],2)*C[1];
+
+  xm[2] = (xcoords(0, 0) + xcoords(0, 1)) / 2.0;
+  ym[2] = (xcoords(1, 0) + xcoords(1, 1)) / 2.0;
+  lm[2] = sqrt(pow((xm[2] - xcoords(0, 2)),2) + pow((ym[2] - xcoords(1, 2)),2));
+  S[2] = (ym[2] - xcoords(1, 2)) / lm[2];
+  C[2] = (xm[2] - xcoords(0, 2)) / lm[2];
+  a(0,2) = -(1.0/2.0)*S[2]*pow(C[2],2);
+  a(1,2) = pow(C[2],3);
+  a(2,2) = (1.0/2.0)*pow(S[2],3) + S[2]*pow(C[2],2);
+  b(0,2) = -pow(S[2],2)*C[2] - (1.0/2.0)*pow(C[2],3);
+  b(1,2) = -pow(S[2],3);
+  b(2,2) = (1.0/2.0)*pow(S[2],2)*C[2];
+
+  // Compute the Nhx matrix
+  Nhx = 0.0;
+  Nhx(0, 0) = (a(0,0)*2.0*xi*lambda+a(1,0)*eta*lambda);
+  Nhx(0, 1) = (a(0,1)*2.0*xi*lambda+a(1,1)*eta*lambda);
+  Nhx(0, 2) = (a(0,2)*2.0*xi*lambda+a(1,2)*eta*lambda);
+  Nhx(1, 0) = (b(0,0)*2.0*xi*lambda+b(1,0)*eta*lambda);
+  Nhx(1, 1) = (b(0,1)*2.0*xi*lambda+b(1,1)*eta*lambda);
+  Nhx(1, 2) = (b(0,2)*2.0*xi*lambda+b(1,2)*eta*lambda);
+}
+
+
+//-----------------------------------------------------------------------
+//   getNryNcyNhymats_
+//-----------------------------------------------------------------------
+
+
+void PanelRibsInterface6DofsBFModel::getNryNcyNhymats_
+
+  ( Matrix&  Nry,
+    Matrix&  Ncy,
+    Matrix&  Nhy,
+    const Matrix&   xcoords,
+    const double&   Area,
+    const double&   x,
+    const double&   y ) const
+  
+{
+  double lambda;
+  double x_c, y_c;
+
+  double xi;
+  double eta;
+
+  Vector Xi  ( nodeRank_ );
+  Vector Eta ( nodeRank_ );
+  Vector xm  ( nodeCount_panrib_ );
+  Vector ym  ( nodeCount_panrib_ );
+  Vector lm  ( nodeCount_panrib_ );
+  Vector S   ( nodeCount_panrib_ );
+  Vector C   ( nodeCount_panrib_ );
+  Matrix a   ( nodeRank_, nodeCount_panrib_ );
+  Matrix b   ( nodeRank_, nodeCount_panrib_ );
+
+  // Compute geometric parameters for the Nr and Nc matrices.
+  lambda = 1.0 / sqrt(Area);
+  x_c = (xcoords(0, 0) + xcoords(0, 1) + xcoords(0, 2)) / 3.0;
+  y_c = (xcoords(1, 0) + xcoords(1, 1) + xcoords(1, 2)) / 3.0;
+  xi = lambda*(x - x_c);
+  eta = lambda*(y - y_c);
+
+  // Compute the Nry matrix
+  Nry = 0.0;
+  Nry(0, 2) = -lambda;
+
+  // Compute the Ncy matrix
+  Ncy = 0.0;
+  Ncy(0, 2) = lambda;
+  Ncy(1, 1) = lambda;
+
+  // Compute geometric parameters for the Nh matrix.
+  Xi[0] = lambda*(xcoords(0, 0) - x_c);
+  Xi[1] = lambda*(xcoords(0, 1) - x_c);
+  Xi[2] = lambda*(xcoords(0, 2) - x_c);
+  
+  Eta[0] = lambda*(xcoords(1, 0) - y_c);
+  Eta[1] = lambda*(xcoords(1, 1) - y_c);
+  Eta[2] = lambda*(xcoords(1, 2) - y_c);
+
+  xm[0] = (xcoords(0, 1) + xcoords(0, 2)) / 2.0;
+  ym[0] = (xcoords(1, 1) + xcoords(1, 2)) / 2.0;
+  lm[0] = sqrt(pow((xm[0] - xcoords(0, 0)),2) + pow((ym[0] - xcoords(1, 0)),2));
+  S[0] = (ym[0]-xcoords(1, 0)) / lm[0];
+  C[0] = (xm[0]-xcoords(0, 0)) / lm[0];
+  a(0,0) = -(1.0/2.0)*S[0]*pow(C[0],2);
+  a(1,0) = pow(C[0],3);
+  a(2,0) = (1.0/2.0)*pow(S[0],3) + S[0]*pow(C[0],2);
+  b(0,0) = -pow(S[0],2)*C[0] - (1.0/2.0)*pow(C[0],3);
+  b(1,0) = -pow(S[0],3);
+  b(2,0) = (1.0/2.0)*pow(S[0],2)*C[0];
+
+  xm[1] = (xcoords(0, 2) + xcoords(0, 0)) / 2.0;
+  ym[1] = (xcoords(1, 2) + xcoords(1, 0)) / 2.0;
+  lm[1] = sqrt(pow((xm[1] - xcoords(0, 1)),2) + pow((ym[1] - xcoords(1, 1)),2));
+  S[1] = (ym[1] - xcoords(1, 1)) / lm[1];
+  C[1] = (xm[1] - xcoords(0, 1)) / lm[1];
+  a(0,1) = -(1.0/2.0)*S[1]*pow(C[1],2);
+  a(1,1) = pow(C[1],3);
+  a(2,1) = (1.0/2.0)*pow(S[1],3) + S[1]*pow(C[1],2);
+  b(0,1) = -pow(S[1],2)*C[1] - (1.0/2.0)*pow(C[1],3);
+  b(1,1) = -pow(S[1],3);
+  b(2,1) = (1.0/2.0)*pow(S[1],2)*C[1];
+
+  xm[2] = (xcoords(0, 0) + xcoords(0, 1)) / 2.0;
+  ym[2] = (xcoords(1, 0) + xcoords(1, 1)) / 2.0;
+  lm[2] = sqrt(pow((xm[2] - xcoords(0, 2)),2) + pow((ym[2] - xcoords(1, 2)),2));
+  S[2] = (ym[2] - xcoords(1, 2)) / lm[2];
+  C[2] = (xm[2] - xcoords(0, 2)) / lm[2];
+  a(0,2) = -(1.0/2.0)*S[2]*pow(C[2],2);
+  a(1,2) = pow(C[2],3);
+  a(2,2) = (1.0/2.0)*pow(S[2],3) + S[2]*pow(C[2],2);
+  b(0,2) = -pow(S[2],2)*C[2] - (1.0/2.0)*pow(C[2],3);
+  b(1,2) = -pow(S[2],3);
+  b(2,2) = (1.0/2.0)*pow(S[2],2)*C[2];
+
+  // Compute the Nhy matrix
+  Nhy = 0.0;
+  Nhy(0, 0) = (a(1,0)*xi*lambda+a(2,0)*2.0*eta*lambda);
+  Nhy(0, 1) = (a(1,1)*xi*lambda+a(2,1)*2.0*eta*lambda);
+  Nhy(0, 2) = (a(1,2)*xi*lambda+a(2,2)*2.0*eta*lambda);
+  Nhy(1, 0) = (b(1,0)*xi*lambda+b(2,0)*2.0*eta*lambda);
+  Nhy(1, 1) = (b(1,1)*xi*lambda+b(2,1)*2.0*eta*lambda);
+  Nhy(1, 2) = (b(1,2)*xi*lambda+b(2,2)*2.0*eta*lambda);
+}
+
+
+//-----------------------------------------------------------------------
+//   getNvxmat_
+//-----------------------------------------------------------------------
+
+
+void PanelRibsInterface6DofsBFModel::getNvxmat_
+
+  ( Matrix&           Nvx,
+    const Matrix&     Nrx,
+    const Matrix&     Hr,
+    const Matrix&     Ncx,
+    const Matrix&     Hc,
+    const Matrix&     Nhx,
+    const Matrix&     Hh ) const
+{
+  Matrix Nuvx   ( rank_, 3*nodeCount_panrib_ );
+
+  // Compute the Nuvx matrix
+  Nuvx = 0.0;
+  Nuvx += matmul( Nrx, Hr );
+  Nuvx += matmul( Ncx, Hc );
+  Nuvx += matmul( Nhx, Hh );
+
+  // Compute the Nvx matrix
+  Nvx = Nuvx(slice(1,2),slice(0,3*nodeCount_panrib_)); 
+}
+
+
+//-----------------------------------------------------------------------
+//   getNuymat_
+//-----------------------------------------------------------------------
+
+
+void PanelRibsInterface6DofsBFModel::getNuymat_
+
+  ( Matrix&           Nuy,
+    const Matrix&     Nry,
+    const Matrix&     Hr,
+    const Matrix&     Ncy,
+    const Matrix&     Hc,
+    const Matrix&     Nhy,
+    const Matrix&     Hh ) const
+{
+  Matrix Nuvy   ( rank_, 3*nodeCount_panrib_ );
+
+  // Compute the Nuvy matrix
+  Nuvy = 0.0;
+  Nuvy += matmul( Nry, Hr );
+  Nuvy += matmul( Ncy, Hc );
+  Nuvy += matmul( Nhy, Hh );
+
+  // Compute the Nuy matrix
+  Nuy = Nuvy(slice(0,1),slice(0,3*nodeCount_panrib_)); 
 }
 
 

@@ -970,6 +970,8 @@ void Shell6DofsBFModel::getTransMatrix_
   Vector      e1_l          ( nodeRank_ );
   Vector      e2_l          ( nodeRank_ );
   Vector      e3_l          ( nodeRank_ );
+  Matrix      transMat_WiRi ( nodeRank_, nodeRank_ );
+  Matrix      transMatRot   ( nodeRank_, nodeRank_ );
   Matrix      transMatBlock ( 2*nodeRank_, 2*nodeRank_ );
 
   e1 = {1.0, 0.0, 0.0};
@@ -1006,14 +1008,7 @@ void Shell6DofsBFModel::getTransMatrix_
   e2_l[1] = e3_l[2]*e1_l[0] - e3_l[0]*e1_l[2];
   e2_l[2] = e3_l[0]*e1_l[1] - e3_l[1]*e1_l[0];
 
-  // // Print the contents of the e3_l vector for debugging purposes.
-  // for ( idx_t i = 0; i < e3_l.size(0); i++ )
-  // {
-  //   jem::System::out() << e3_l[i] << " ";
-  //   jem::System::out() << "\n";
-  // }
-
-  // Get the transformation matrix.
+  // Get the transformation matrix for translations.
 
   transMat(0,0) = e1_l[0]*e1[0] + e1_l[1]*e1[1] + e1_l[2]*e1[2];
   transMat(0,1) = e1_l[0]*e2[0] + e1_l[1]*e2[1] + e1_l[2]*e2[2];
@@ -1025,11 +1020,22 @@ void Shell6DofsBFModel::getTransMatrix_
   transMat(2,1) = e3_l[0]*e2[0] + e3_l[1]*e2[1] + e3_l[2]*e2[2];
   transMat(2,2) = e3_l[0]*e3[0] + e3_l[1]*e3[1] + e3_l[2]*e3[2];
 
+  // Get the transformation matrix for rotations.
+
+  transMat_WiRi = 0.0;
+  transMat_WiRi(0,0) = 0.0;
+  transMat_WiRi(0,1) = -1.0;
+  transMat_WiRi(1,0) = 1.0;
+  transMat_WiRi(1,1) = 0.0;
+  transMat_WiRi(2,2) = 1.0;
+
+  transMatRot = matmul ( transMat_WiRi, transMat );
+
   // Get the transformation matrix of the Dofs of a single node.
 
   transMatBlock = 0.0;
   transMatBlock(slice(0,nodeRank_),slice(0,nodeRank_)) = transMat;
-  transMatBlock(slice(nodeRank_,2*nodeRank_),slice(nodeRank_,2*nodeRank_)) = transMat;
+  transMatBlock(slice(nodeRank_,2*nodeRank_),slice(nodeRank_,2*nodeRank_)) = transMatRot;
 
   // Get the transformation matrix of the nodal element Dofs.
 

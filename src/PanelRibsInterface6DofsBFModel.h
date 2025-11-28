@@ -265,6 +265,46 @@ class PanelRibsInterface6DofsBFModel : public Model
     const Matrix&     Nh,
     const Matrix&     Hh ) const;
 
+  void                 getNrxNcxNhxmats_
+
+  ( Matrix&           Nrx,
+    Matrix&           Ncx,
+    Matrix&           Nhx,
+    const Matrix&     xcoords,
+    const double&     Area,
+    const double&     x,
+    const double&     y ) const;
+
+  void                 getNryNcyNhymats_
+
+  ( Matrix&           Nry,
+    Matrix&           Ncy,
+    Matrix&           Nhy,
+    const Matrix&     xcoords,
+    const double&     Area,
+    const double&     x,
+    const double&     y ) const;
+
+  void                 getNvxmat_
+
+  ( Matrix&           Nvx,
+    const Matrix&     Nrx,
+    const Matrix&     Hr,
+    const Matrix&     Ncx,
+    const Matrix&     Hc,
+    const Matrix&     Nhx,
+    const Matrix&     Hh ) const;
+
+  void                 getNuymat_
+
+  ( Matrix&           Nuy,
+    const Matrix&     Nry,
+    const Matrix&     Hr,
+    const Matrix&     Ncy,
+    const Matrix&     Hc,
+    const Matrix&     Nhy,
+    const Matrix&     Hh ) const;
+
   void                 getSRRxRymats_
 
     ( Matrix&           Smat,
