@@ -240,6 +240,15 @@ class PanelRibsInterface6DofsAllmanModel : public Model
     const double&     x,
     const double&     y )    const;
 
+  void                 getNuyNvxmats_
+
+  ( Matrix&           Nuy,
+    Matrix&           Nvx,
+    const Matrix&     xcoords,
+    const double&     Area,
+    const double&     x,
+    const double&     y )    const;
+
   void                 getSRRxRymats_
 
     ( Matrix&           Smat,

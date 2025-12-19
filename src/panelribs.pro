@@ -7,7 +7,7 @@ log =
 control = 
 {
   pause = 0.;
-  runWhile = "i < 150";
+  runWhile = "i < 3000";
 };
 
 userInput =
@@ -28,7 +28,7 @@ userInput =
   {
     type = "Quad4Interf";
   
-    elemGroups = ["gmsh2"];
+    elemGroups = ["gmsh3"];
     thickness = 1.0;
   };
 
@@ -37,21 +37,21 @@ userInput =
   ngroups = 
   {
     type = "GroupInput";
-    nodeGroups = [ "panel", "ribs",  "rib_top"];
-    panel = 
-    {
-      restrictToGroups = "gmsh0";
-      xbounds = [0.0, 60.0];
-      ybounds = [0.0, 60.0];
-    };
-    ribs = 
+    nodeGroups = [ "left", "RB", "RT"];
+    left = 
     {
       restrictToGroups = "gmsh1";
-      zbounds = [0.0, 30.5];
+      xtype = "min";
     };
-    rib_top = 
+    RB = 
     {
       restrictToGroups = "gmsh1";
+      xtype = "max";
+    };
+    RT = 
+    {
+      restrictToGroups = "gmsh2";
+      xtype = "max";
       ztype = "max";
     };
   };
@@ -69,7 +69,7 @@ model =
     models = [ "panel" ,        // first ShellFEMModel
                "ribs" ,         // second ShellFEMModel
                "interface1" ,   // firts PanelRibsInterfaceModel
-               "diri" ,       // DispArclenModel
+               "arclen" ,       // DispArclenModel
                "lodi" ];        // LoadDispModel
 
     // first ShellFEMModel: Panel-interface 1a
@@ -77,7 +77,7 @@ model =
     panel =
     {
       type      = "Shell6DofsBF";
-      elements  = "gmsh0";  // "gmsh0" is the default element group for panels
+      elements  = "gmsh1";  // "gmsh0" is the default element group for panels
 
       shape =
       {
@@ -118,7 +118,7 @@ model =
     ribs =
     {
       type      = "Shell6DofsBF";
-      elements  = "gmsh1";  // "gmsh4" is the defaultelement group for ribsfree
+      elements  = "gmsh2";  // "gmsh4" is the defaultelement group for ribsfree
 
       shape =
       {
@@ -159,7 +159,7 @@ model =
     interface1 = 
     {
       type = "PanelRibsInterface6DofsBFModel";
-      elements  = "gmsh2";  // this element group should be created in the future by a PanelRibsShellMeshModule
+      elements  = "gmsh3";  // this element group should be created in the future by a PanelRibsShellMeshModule
      
       shape =
       {
@@ -170,11 +170,11 @@ model =
           type = "Linear"; 
         };
       };
-
+      
       thick_shape =
       {
         type      = "Line2";
-        intScheme = "Gauss7";
+        intScheme = "Gauss5";
       };
 
       panel_name = "panel";
@@ -187,7 +187,7 @@ model =
         type   = "Turon";
         dim    = 3;
         // dummy  = 10500.0e3;
-        dummy  = 161.78e3;
+        dummy  = 161.78e2;
     
         f2t = 60.;
         f6  = 60.;
@@ -197,21 +197,52 @@ model =
       };
     };
 
-    diri = 
+    arclen = 
     {
-      type = "Dirichlet";
+      type = "DispArclen";
 
-      dispIncr = 0.05;
+      // thresholds for switching to dissipation increments
 
-      nodeGroups = [ "rib_top", "panel", "panel", "panel", "panel", "panel", "panel" ];
-      dofs = [ "v", "u", "v", "w", "wx", "wy", "wz" ];
-      factors = [1., 0., 0., 0., 0., 0., 0.]; 
+      swtIter = 4;   
+      swtEnergy = 1.;
+
+      // optimal number of iterations (for adaptive increments)
+      
+      optIter = 6;   
+
+      // factor for increment reduction
+
+      reduction = .2;
+
+      // initial displacement increment:
+
+      dispIncr = 0.001;
+
+      // bounds for increment size
+      
+      minDispIncr = 0.00001;
+      maxDisp	= 100.0;
+
+      minIncr = 0.0001; // (energy)
+      maxIncr = 10.;
+
+      // define constraints for DispArclenBCs
+
+      constraints =
+      {
+        nodeGroups = [ "RT", "RT", "left", "RB", "RB" ];
+        dofs = [ "w", "u", "u", "u", "w" ];
+        loaded = 0;  // RT.w is the loaded boundary
+
+        // instead of identifying nonzero dirichlet bc's with loaded, 
+        // neumann bc's could be indicated here with a loadTable
+      };
     };
 
     lodi =
     {
       type = "LoadDisp";
-      group = "rib_top";
+      group = "RT";
     };
   };
 };
@@ -226,8 +257,8 @@ sample =
 
     // the data that is written (see 'lodi' above)
 
-    dataSets = [ "i","model.model.lodi.disp[1]",
-                 "abs(model.model.lodi.load[1])" ];
+    dataSets = [ "i","model.model.lodi.disp[2]",
+                 "abs(model.model.lodi.load[2])" ];
 };
  
 userModules = 
@@ -236,18 +267,27 @@ userModules =
 
   solver =
   {
-    type = "AdaptiveStep";
+    type = "FlexArclen";
 
-    nonlin = 
+    nonLin = 
     {
       lineSearch = false;
-      precision = 1.0e-6;
+      precision = 1.0e-4;
       solver.type = "Skyline";
       solver.useThreads = true;
-      tiny = 1.e-10;
-      maxIter = 10;
+      maxIter = 20;
     };
 
+    // XArclenModule for dissipation increments
+
+    arcLen =
+    {
+      allowDespair = true;  // allow modified Newton-Raphson scheme
+      precision = 1.0e-4;
+      maxIter = 20;
+    };
+
+    arcLen.solver = nonLin.solver;
   };
 
   graph =
@@ -259,8 +299,8 @@ userModules =
     dataSets = "loadDisp";
     loadDisp =
     {
-      xData = "model.model.lodi.disp[1]";
-      yData = "abs(model.model.lodi.load[1])";
+      xData = "model.model.lodi.disp[2]";
+      yData = "abs(model.model.lodi.load[2])";
     };
     graph.keyPos  = [ 0.060000, 45.00000 ];
   };
@@ -280,14 +320,8 @@ modules = [ "paraview" ];
     output_format = "$(CASE_NAME)/vis%i";
     output_file = "vtu";
     sampleWhen = "(i-1)%1<1";
-    groups = [ "gmsh0", "gmsh1", "gmsh2" ];
+    groups = [ "gmsh1", "gmsh2", "gmsh3" ];
    
-    gmsh0 =
-    {
-      shape = "Triangle3";
-      disps = [ "u", "v", "w" ];
-      // otherDofs = [ "wx", "wy" ];
-    };
     gmsh1 =
     {
       shape = "Triangle3";
@@ -295,6 +329,12 @@ modules = [ "paraview" ];
       // otherDofs = [ "wx", "wy" ];
     };
     gmsh2 =
+    {
+      shape = "Triangle3";
+      disps = [ "u", "v", "w" ];
+      // otherDofs = [ "wx", "wy" ];
+    };
+    gmsh3 =
     {
       shape = "BLine2";
       disps = [ "u", "v", "w" ];

@@ -191,6 +191,18 @@ class PanelRibsInterfaceModel : public Model
     const Matrix&       xcoords,
     const Matrix&       ipxcoords )   const;
 
+  void                 getMembraneShapeFuncsDx_
+
+  ( Matrix&             Dxsfuncs,
+    const Matrix&       xcoords,
+    const Matrix&       ipxcoords )   const;
+
+  void                 getMembraneShapeFuncsDy_
+
+  ( Matrix&             Dysfuncs,
+    const Matrix&       xcoords,
+    const Matrix&       ipxcoords )   const;
+
   void                 getBABxBymats_
 
   ( Matrix&             BAmat,
@@ -247,6 +259,14 @@ class PanelRibsInterfaceModel : public Model
       Matrix&           Nv,
       const Matrix&     sfuncs,
       const idx_t&      ip )    const;
+
+  void                 getNvxNuymats_
+
+  ( Matrix&           Nvx,
+    Matrix&           Nuy,
+    const Matrix&     Dxsfuncs,
+    const Matrix&     Dysfuncs,
+    const idx_t&      ip )    const;
 
   void                 initWriter_
 

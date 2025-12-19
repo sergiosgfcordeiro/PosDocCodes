@@ -517,21 +517,25 @@ void PanelRibsInterface6DofsAllmanModel::getMatrix_
   Matrix      Rxmat_rib        ( 7, 1 );
   Matrix      Rymat_rib        ( 7, 1 );
 
-  Matrix      Nu_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nu_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nu_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_rib      ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_rib      ( 1, 3 * nodeCount_panrib_ );
 
   Matrix      elemMat      ( dofCount, dofCount  );
   Vector      elemForce    ( dofCount  );
@@ -807,6 +811,10 @@ void PanelRibsInterface6DofsAllmanModel::getMatrix_
 
       getNuNvmats_(Nu_panA, Nv_panA, xcoords_panA, Area_panA, x, y);
 
+      // Get the Nuy and Nvx matrices for the panel A.
+
+      getNuyNvxmats_(Nuy_panA, Nvx_panA, xcoords_panA, Area_panA, x, y);
+
       // Get the S, R, Rx and Ry matrices for the panel A.
 
       getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
@@ -819,6 +827,10 @@ void PanelRibsInterface6DofsAllmanModel::getMatrix_
       // Get the Nu and Nv matrices for the panel B.
 
       getNuNvmats_(Nu_panB, Nv_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nuy and Nvx matrices for the panel B.
+
+      getNuyNvxmats_(Nuy_panB, Nvx_panB, xcoords_panB, Area_panB, x, y);
 
       // Get the S, R, Rx and Ry matrices for the panel B.
 
@@ -841,18 +853,18 @@ void PanelRibsInterface6DofsAllmanModel::getMatrix_
         
       BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
       Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
-      Nthetax_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
-      Nthetay_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
+      Nwx_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
+      Nwy_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
 
       BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
       Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
-      Nthetax_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
-      Nthetay_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
+      Nwx_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
+      Nwy_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
 
       BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
       Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
-      Nthetax_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
-      Nthetay_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
+      Nwx_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
+      Nwy_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
 
       // Assemble the BCD matrix of the structural cohesive element.
 
@@ -864,41 +876,42 @@ void PanelRibsInterface6DofsAllmanModel::getMatrix_
       BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
 
       BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
-      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetax_panA(0,ALL);
+      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwx_panA(0,ALL);
       BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
-      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panB(0,ALL);
+      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panB(0,ALL);
       BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
       BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
       
       BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
-      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetay_panA(0,ALL);
+      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwy_panA(0,ALL);
       BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
-      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panB(0,ALL);
+      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panB(0,ALL);
       BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
       BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
 
       // Assemble the BCT matrix of the structural cohesive element.
 
       BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panA(0,ALL);
       BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panB(0,ALL);
       BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetay_rib(0,ALL);
+      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwy_rib(0,ALL);
 
-      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panA(0,ALL);
-      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panB(0,ALL);
+      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panA(0,ALL)-Nuy_panA(0,ALL));
+      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panB(0,ALL)-Nuy_panB(0,ALL));
+      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
       BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetax_rib(0,ALL);
+      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwx_rib(0,ALL);
       
       BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panA(0,ALL);
+      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panB(0,ALL);
+      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
 
       for ( idx_t jp = 0; jp < jpCount_; jp++ )
       {
@@ -1081,21 +1094,25 @@ void PanelRibsInterface6DofsAllmanModel::getFrictionForce_
   Matrix      Rxmat_rib        ( 7, 1 );
   Matrix      Rymat_rib        ( 7, 1 );
 
-  Matrix      Nu_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nu_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nu_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_rib      ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_rib      ( 1, 3 * nodeCount_panrib_ );
 
   Vector      elemForce    ( dofCount  );
   Vector      elemxForce   ( dofCount  );
@@ -1358,6 +1375,10 @@ void PanelRibsInterface6DofsAllmanModel::getFrictionForce_
 
       getNuNvmats_(Nu_panA, Nv_panA, xcoords_panA, Area_panA, x, y);
 
+      // Get the Nuy and Nvx matrices for the panel A.
+
+      getNuyNvxmats_(Nuy_panA, Nvx_panA, xcoords_panA, Area_panA, x, y);
+
       // Get the S, R, Rx and Ry matrices for the panel A.
 
       getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
@@ -1370,6 +1391,10 @@ void PanelRibsInterface6DofsAllmanModel::getFrictionForce_
       // Get the Nu and Nv matrices for the panel B.
 
       getNuNvmats_(Nu_panB, Nv_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nuy and Nvx matrices for the panel B.
+
+      getNuyNvxmats_(Nuy_panB, Nvx_panB, xcoords_panB, Area_panB, x, y);
 
       // Get the S, R, Rx and Ry matrices for the panel B.
 
@@ -1392,18 +1417,18 @@ void PanelRibsInterface6DofsAllmanModel::getFrictionForce_
         
       BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
       Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
-      Nthetax_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
-      Nthetay_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
+      Nwx_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
+      Nwy_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
 
       BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
       Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
-      Nthetax_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
-      Nthetay_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
+      Nwx_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
+      Nwy_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
 
       BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
       Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
-      Nthetax_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
-      Nthetay_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
+      Nwx_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
+      Nwy_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
 
       // Assemble the BCD matrix of the structural cohesive element.
 
@@ -1415,39 +1440,39 @@ void PanelRibsInterface6DofsAllmanModel::getFrictionForce_
       BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
 
       BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
-      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetax_panA(0,ALL);
+      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwx_panA(0,ALL);
       BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
-      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panB(0,ALL);
+      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panB(0,ALL);
       BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
       BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
       
       BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
-      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetay_panA(0,ALL);
+      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwy_panA(0,ALL);
       BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
-      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panB(0,ALL);
+      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panB(0,ALL);
       BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
       BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
 
       // Assemble the BCT matrix of the structural cohesive element.
 
       BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panA(0,ALL);
       BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panB(0,ALL);
       BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetay_rib(0,ALL);
+      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwy_rib(0,ALL);
 
-      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panA(0,ALL);
-      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panB(0,ALL);
+      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panA(0,ALL)-Nuy_panA(0,ALL));
+      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panB(0,ALL)-Nuy_panB(0,ALL));
+      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
       BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetax_rib(0,ALL);
+      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwx_rib(0,ALL);
       
       BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panA(0,ALL);
+      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panB(0,ALL);
+      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
 
@@ -1597,21 +1622,25 @@ void PanelRibsInterface6DofsAllmanModel::writeOutput_
   Matrix      Rxmat_rib        ( 7, 1 );
   Matrix      Rymat_rib        ( 7, 1 );
 
-  Matrix      Nu_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_panA          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panA     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nu_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_panB          ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_panB     ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nu_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nv_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nw_rib           ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetax_rib      ( 1, 3 * nodeCount_panrib_ );
-  Matrix      Nthetay_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_panA      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panA     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nuy_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nvx_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_panB      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_panB     ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nu_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nv_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nw_rib       ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwx_rib      ( 1, 3 * nodeCount_panrib_ );
+  Matrix      Nwy_rib      ( 1, 3 * nodeCount_panrib_ );
 
   Vector      elemxDisp    ( dofCount  );
 
@@ -1874,6 +1903,10 @@ void PanelRibsInterface6DofsAllmanModel::writeOutput_
 
       getNuNvmats_(Nu_panA, Nv_panA, xcoords_panA, Area_panA, x, y);
 
+      // Get the Nuy and Nvx matrices for the panel A.
+
+      getNuyNvxmats_(Nuy_panA, Nvx_panA, xcoords_panA, Area_panA, x, y);
+
       // Get the S, R, Rx and Ry matrices for the panel A.
 
       getSRRxRymats_(Smat_panA, Rmat_panA, Rxmat_panA, Rymat_panA, x, y);
@@ -1886,6 +1919,10 @@ void PanelRibsInterface6DofsAllmanModel::writeOutput_
       // Get the Nu and Nv matrices for the panel B.
 
       getNuNvmats_(Nu_panB, Nv_panB, xcoords_panB, Area_panB, x, y);
+
+      // Get the Nuy and Nvx matrices for the panel B.
+
+      getNuyNvxmats_(Nuy_panB, Nvx_panB, xcoords_panB, Area_panB, x, y);
 
       // Get the S, R, Rx and Ry matrices for the panel B.
 
@@ -1908,18 +1945,18 @@ void PanelRibsInterface6DofsAllmanModel::writeOutput_
         
       BA_MaC_panA = BAmat - matmul(Mamat_panA,Cmat_panA);      
       Nw_panA = matmul ( matmul(Smat_panA.transpose(),MAinv_panA), BA_MaC_panA ) + matmul(Rmat_panA.transpose(),Cmat_panA);
-      Nthetax_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
-      Nthetay_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
+      Nwx_panA = matmul ( matmul(Bxmat,MAinv_panA), BA_MaC_panA ) + matmul(Rxmat_panA.transpose(),Cmat_panA);
+      Nwy_panA = matmul ( matmul(Bymat,MAinv_panA), BA_MaC_panA ) + matmul(Rymat_panA.transpose(),Cmat_panA);
 
       BA_MaC_panB = BAmat - matmul(Mamat_panB,Cmat_panB);      
       Nw_panB = matmul ( matmul(Smat_panB.transpose(),MAinv_panB), BA_MaC_panB ) + matmul(Rmat_panB.transpose(),Cmat_panB);
-      Nthetax_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
-      Nthetay_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
+      Nwx_panB = matmul ( matmul(Bxmat,MAinv_panB), BA_MaC_panB ) + matmul(Rxmat_panB.transpose(),Cmat_panB);
+      Nwy_panB = matmul ( matmul(Bymat,MAinv_panB), BA_MaC_panB ) + matmul(Rymat_panB.transpose(),Cmat_panB);
 
       BA_MaC_rib = BAmat - matmul(Mamat_rib,Cmat_rib);
       Nw_rib = matmul ( matmul(Smat_rib.transpose(),MAinv_rib), BA_MaC_rib ) + matmul(Rmat_rib.transpose(),Cmat_rib);
-      Nthetax_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
-      Nthetay_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
+      Nwx_rib = matmul ( matmul(Bxmat,MAinv_rib), BA_MaC_rib ) + matmul(Rxmat_rib.transpose(),Cmat_rib);
+      Nwy_rib = matmul ( matmul(Bymat,MAinv_rib), BA_MaC_rib ) + matmul(Rymat_rib.transpose(),Cmat_rib);
 
       // Assemble the BCD matrix of the structural cohesive element.
 
@@ -1931,41 +1968,42 @@ void PanelRibsInterface6DofsAllmanModel::writeOutput_
       BCDmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
 
       BCDmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panA(0,ALL);
-      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetax_panA(0,ALL);
+      BCDmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwx_panA(0,ALL);
       BCDmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nu_panB(0,ALL);
-      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetax_panB(0,ALL);
+      BCDmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwx_panB(0,ALL);
       BCDmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = Nu_rib(0,ALL);
       BCDmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
       
       BCDmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panA(0,ALL);
-      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nthetay_panA(0,ALL);
+      BCDmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) =  (h_pan/4.0)*Nwy_panA(0,ALL);
       BCDmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = -(1.0/2.0)*Nv_panB(0,ALL);
-      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nthetay_panB(0,ALL);
+      BCDmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = (h_pan/4.0)*Nwy_panB(0,ALL);
       BCDmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
       BCDmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = -Nw_rib(0,ALL);
 
       // Assemble the BCT matrix of the structural cohesive element.
 
       BCTmat(0,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panA(0,ALL);
       BCTmat(0,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
+      BCTmat(0,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nwy_panB(0,ALL);
       BCTmat(0,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetay_rib(0,ALL);
+      BCTmat(0,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwy_rib(0,ALL);
 
-      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panA(0,ALL);
-      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetax_panB(0,ALL);
+      BCTmat(1,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panA(0,ALL)-Nuy_panA(0,ALL));
+      BCTmat(1,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
+      BCTmat(1,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = (1.0/4.0)*(Nvx_panB(0,ALL)-Nuy_panB(0,ALL));
+      BCTmat(1,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
       BCTmat(1,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
-      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nthetax_rib(0,ALL);
+      BCTmat(1,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = Nwx_rib(0,ALL);
       
       BCTmat(2,slice(0*nodeCount_panrib_,3*nodeCount_panrib_)) = 0.0;
-      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panA(0,ALL);
+      BCTmat(2,slice(3*nodeCount_panrib_,6*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(6*nodeCount_panrib_,9*nodeCount_panrib_)) = 0.0;
-      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = -(1.0/2.0)*Nthetay_panB(0,ALL);
+      BCTmat(2,slice(9*nodeCount_panrib_,12*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(12*nodeCount_panrib_,15*nodeCount_panrib_)) = 0.0;
       BCTmat(2,slice(15*nodeCount_panrib_,18*nodeCount_panrib_)) = 0.0;
+
 
       for ( idx_t jp = 0; jp < jpCount_; jp++ )
       {
@@ -3275,6 +3313,287 @@ void PanelRibsInterface6DofsAllmanModel::getNuNvmats_
   Nv(0,6) = -x_12*y_r0;
   Nv(0,7) = zeta_3 - y_12*y_r0; 
   Nv(0,8) = (1.0/2.0)*(-g6*zeta_31 + g4*zeta_23 + g6*zeta_3113 + g4*zeta_2332); 
+}
+
+
+//-----------------------------------------------------------------------
+//   getNuyNvxmats_
+//-----------------------------------------------------------------------
+
+
+void PanelRibsInterface6DofsAllmanModel::getNuyNvxmats_
+
+  ( Matrix&           Nuy,
+    Matrix&           Nvx,
+    const Matrix&     xcoords,
+    const double&     Area,
+    const double&     x,
+    const double&     y ) const
+{
+  
+  // Get some geometrical parameters.
+  
+  double x_1, x_2, x_3;
+  double y_1, y_2, y_3;
+
+  x_1 = xcoords(0,0);
+  x_2 = xcoords(0,1);
+  x_3 = xcoords(0,2);
+  y_1 = xcoords(1,0);
+  y_2 = xcoords(1,1);
+  y_3 = xcoords(1,2);
+
+  double x_12, x_21, x_23, x_32, x_13, x_31;
+
+  x_12 = (xcoords(0, 0) - xcoords(0, 1));
+  x_21 = (xcoords(0, 1) - xcoords(0, 0));
+  x_23 = (xcoords(0, 1) - xcoords(0, 2));
+  x_32 = (xcoords(0, 2) - xcoords(0, 1));
+  x_13 = (xcoords(0, 0) - xcoords(0, 2));
+  x_31 = (xcoords(0, 2) - xcoords(0, 0));
+
+  double y_12, y_21, y_23, y_32, y_13, y_31;
+
+  y_12 = (xcoords(1, 0) - xcoords(1, 1));
+  y_21 = (xcoords(1, 1) - xcoords(1, 0));
+  y_23 = (xcoords(1, 1) - xcoords(1, 2));
+  y_32 = (xcoords(1, 2) - xcoords(1, 1));
+  y_13 = (xcoords(1, 0) - xcoords(1, 2));
+  y_31 = (xcoords(1, 2) - xcoords(1, 0));
+
+  double l_12, l_23, l_31;
+
+  l_12 = sqrt(pow(x_12,2) + pow(y_12,2));
+  l_23 = sqrt(pow(x_23,2) + pow(y_23,2));
+  l_31 = sqrt(pow(x_31,2) + pow(y_31,2));
+
+  double a_12, b_12, a_23, b_23, a_31, b_31;
+
+  a_12 = 2.0*Area/l_12;
+  b_12 = (x_12*x_13 + y_12*y_13)/l_12;
+  a_23 = 2.0*Area/l_23;
+  b_23 = (x_23*x_21 + y_23*y_21)/l_23;
+  a_31 = 2.0*Area/l_31;
+  b_31 = (x_31*x_32 + y_31*y_32)/l_31;
+
+  double xp_12, yp_12, xp_23, yp_23, xp_31, yp_31;
+
+  xp_12 = x_21*b_12/l_12 + x_1;
+  yp_12 = y_21*b_12/l_12 + y_1;
+  xp_23 = x_32*b_23/l_23 + x_2;
+  yp_23 = y_32*b_23/l_23 + y_2;
+  xp_31 = x_13*b_31/l_31 + x_3;
+  yp_31 = y_13*b_31/l_31 + y_3;
+
+  double g1, g2, g3, g4, g5, g6;
+
+  g1 = l_12*(xp_12 - x_3)/a_12;
+  g2 = l_12*(yp_12 - y_3)/a_12;
+  g3 = l_23*(xp_23 - x_1)/a_23;
+  g4 = l_23*(yp_23 - y_1)/a_23;
+  g5 = l_31*(xp_31 - x_2)/a_31;
+  g6 = l_31*(yp_31 - y_2)/a_31;
+
+  // Get the barycentric coordinates: zeta_1, zeta_2, zeta_3, zeta_12, zeta_23, zeta_31.
+
+  double zeta_1, zeta_2, zeta_3;
+
+  zeta_1 = (1.0/(2.0*Area))*((x_2 - x)*(y_3 - y) - (x_3 - x)*(y_2 - y));
+  zeta_2 = (1.0/(2.0*Area))*((x_3 - x)*(y_1 - y) - (x_1 - x)*(y_3 - y));
+  zeta_3 = (1.0/(2.0*Area))*((x_1 - x)*(y_2 - y) - (x_2 - x)*(y_1 - y));
+
+  double zeta_12, zeta_23, zeta_31;
+
+  zeta_12 = zeta_1*zeta_2;
+  zeta_23 = zeta_2*zeta_3;
+  zeta_31 = zeta_3*zeta_1;
+
+  // Get the derivatives: dzeta1221_dzetai, dzeta2332_dzetai, dzeta3113_dzetai.
+
+  double dzeta1221_dzeta1, dzeta1221_dzeta2, dzeta1221_dzeta3;
+
+  dzeta1221_dzeta1 = zeta_2*(zeta_2-zeta_1) - zeta_12;
+  dzeta1221_dzeta2 = zeta_1*(zeta_2-zeta_1) + zeta_12;
+  dzeta1221_dzeta3 = 0.0;
+
+  double dzeta2332_dzeta1, dzeta2332_dzeta2, dzeta2332_dzeta3;
+
+  dzeta2332_dzeta1 = 0.0;
+  dzeta2332_dzeta2 = zeta_3*(zeta_3-zeta_2) - zeta_23;
+  dzeta2332_dzeta3 = zeta_2*(zeta_3-zeta_2) + zeta_23;
+
+  double dzeta3113_dzeta1, dzeta3113_dzeta2, dzeta3113_dzeta3;
+
+  dzeta3113_dzeta1 = zeta_3*(zeta_1-zeta_3) + zeta_31;
+  dzeta3113_dzeta2 = 0.0;
+  dzeta3113_dzeta3 = zeta_1*(zeta_1-zeta_3) - zeta_31;
+
+  // Get the derivatives: xr0_dzetai, yro_dzetai.
+
+  double dxr0_dzeta1, dxr0_dzeta2, dxr0_dzeta3;
+
+  dxr0_dzeta1 = (g1*dzeta1221_dzeta1 + g3*dzeta2332_dzeta1 + g5*dzeta3113_dzeta1)/(4.0*Area);
+  dxr0_dzeta2 = (g1*dzeta1221_dzeta2 + g3*dzeta2332_dzeta2 + g5*dzeta3113_dzeta2)/(4.0*Area);
+  dxr0_dzeta3 = (g1*dzeta1221_dzeta3 + g3*dzeta2332_dzeta3 + g5*dzeta3113_dzeta3)/(4.0*Area);
+
+  double dyr0_dzeta1, dyr0_dzeta2, dyr0_dzeta3;
+
+  dyr0_dzeta1 = (g2*dzeta1221_dzeta1 + g4*dzeta2332_dzeta1 + g6*dzeta3113_dzeta1)/(4.0*Area);
+  dyr0_dzeta2 = (g2*dzeta1221_dzeta2 + g4*dzeta2332_dzeta2 + g6*dzeta3113_dzeta2)/(4.0*Area);
+  dyr0_dzeta3 = (g2*dzeta1221_dzeta3 + g4*dzeta2332_dzeta3 + g6*dzeta3113_dzeta3)/(4.0*Area);
+
+  // Get the shape functions derivatives with respect to: zeta1, zeta2, zeta3.
+
+  double dNxx1_dzeta1, dNxx1_dzeta2, dNxx1_dzeta3;
+
+  dNxx1_dzeta1 = 1.0 - x_23*dxr0_dzeta1;
+  dNxx1_dzeta2 = - x_23*dxr0_dzeta2;
+  dNxx1_dzeta3 = - x_23*dxr0_dzeta3;
+
+  double dNxy1_dzeta1, dNxy1_dzeta2, dNxy1_dzeta3;
+
+  dNxy1_dzeta1 = - y_23*dxr0_dzeta1;
+  dNxy1_dzeta2 = - y_23*dxr0_dzeta2;
+  dNxy1_dzeta3 = - y_23*dxr0_dzeta3;
+
+  double dNxx2_dzeta1, dNxx2_dzeta2, dNxx2_dzeta3;
+
+  dNxx2_dzeta1 = - x_31*dxr0_dzeta1;
+  dNxx2_dzeta2 = 1.0 - x_31*dxr0_dzeta2;
+  dNxx2_dzeta3 = - x_31*dxr0_dzeta3;
+
+  double dNxy2_dzeta1, dNxy2_dzeta2, dNxy2_dzeta3;
+
+  dNxy2_dzeta1 = - y_31*dxr0_dzeta1;
+  dNxy2_dzeta2 = - y_31*dxr0_dzeta2;
+  dNxy2_dzeta3 = - y_31*dxr0_dzeta3;
+
+  double dNxx3_dzeta1, dNxx3_dzeta2, dNxx3_dzeta3;
+
+  dNxx3_dzeta1 = - x_12*dxr0_dzeta1;
+  dNxx3_dzeta2 = - x_12*dxr0_dzeta2;
+  dNxx3_dzeta3 = 1.0 - x_12*dxr0_dzeta3;
+
+  double dNxy3_dzeta1, dNxy3_dzeta2, dNxy3_dzeta3;
+
+  dNxy3_dzeta1 = - y_12*dxr0_dzeta1;
+  dNxy3_dzeta2 = - y_12*dxr0_dzeta2;
+  dNxy3_dzeta3 = - y_12*dxr0_dzeta3;
+
+  double dNxtheta1_dzeta1, dNxtheta1_dzeta2, dNxtheta1_dzeta3;
+
+  dNxtheta1_dzeta1 = (1.0/2.0)*(-g1*zeta_2 + g5*zeta_3 + g1*dzeta1221_dzeta1 + g5*dzeta3113_dzeta1);
+  dNxtheta1_dzeta2 = (1.0/2.0)*(-g1*zeta_1 + g1*dzeta1221_dzeta2);
+  dNxtheta1_dzeta3 = (1.0/2.0)*( g5*zeta_1 + g5*dzeta3113_dzeta3);
+
+  double dNxtheta2_dzeta1, dNxtheta2_dzeta2, dNxtheta2_dzeta3;
+
+  dNxtheta2_dzeta1 = (1.0/2.0)*(g1*zeta_2 + g1*dzeta1221_dzeta1);
+  dNxtheta2_dzeta2 = (1.0/2.0)*(-g3*zeta_3 + g1*zeta_1 + g3*dzeta2332_dzeta2 + g1*dzeta1221_dzeta2);
+  dNxtheta2_dzeta3 = (1.0/2.0)*(-g3*zeta_2 + g3*dzeta2332_dzeta3);
+
+  double dNxtheta3_dzeta1, dNxtheta3_dzeta2, dNxtheta3_dzeta3;
+
+  dNxtheta3_dzeta1 = (1.0/2.0)*(-g5*zeta_3 + g5*dzeta3113_dzeta1);
+  dNxtheta3_dzeta2 = (1.0/2.0)*(g3*zeta_3 + g3*dzeta2332_dzeta2);
+  dNxtheta3_dzeta3 = (1.0/2.0)*(-g5*zeta_1 + g3*zeta_2 + g5*dzeta3113_dzeta3 + g3*dzeta2332_dzeta3);
+
+  double dNyx1_dzeta1, dNyx1_dzeta2, dNyx1_dzeta3;
+
+  dNyx1_dzeta1 = - x_23*dyr0_dzeta1;
+  dNyx1_dzeta2 = - x_23*dyr0_dzeta2;
+  dNyx1_dzeta3 = - x_23*dyr0_dzeta3;
+
+  double dNyy1_dzeta1, dNyy1_dzeta2, dNyy1_dzeta3;
+
+  dNyy1_dzeta1 = 1.0 - y_23*dyr0_dzeta1;
+  dNyy1_dzeta2 = - y_23*dyr0_dzeta2;
+  dNyy1_dzeta3 = - y_23*dyr0_dzeta3;
+
+  double dNyx2_dzeta1, dNyx2_dzeta2, dNyx2_dzeta3;
+
+  dNyx2_dzeta1 = - x_31*dyr0_dzeta1;
+  dNyx2_dzeta2 = - x_31*dyr0_dzeta2;
+  dNyx2_dzeta3 = - x_31*dyr0_dzeta3;
+
+  double dNyy2_dzeta1, dNyy2_dzeta2, dNyy2_dzeta3;
+
+  dNyy2_dzeta1 = - y_31*dyr0_dzeta1;
+  dNyy2_dzeta2 = 1.0 - y_31*dyr0_dzeta2;
+  dNyy2_dzeta3 = - y_31*dyr0_dzeta3;
+
+  double dNyx3_dzeta1, dNyx3_dzeta2, dNyx3_dzeta3;
+
+  dNyx3_dzeta1 = - x_12*dyr0_dzeta1;
+  dNyx3_dzeta2 = - x_12*dyr0_dzeta2;
+  dNyx3_dzeta3 = - x_12*dyr0_dzeta3;
+
+  double dNyy3_dzeta1, dNyy3_dzeta2, dNyy3_dzeta3;
+
+  dNyy3_dzeta1 = - y_12*dyr0_dzeta1;
+  dNyy3_dzeta2 = - y_12*dyr0_dzeta2;
+  dNyy3_dzeta3 = 1.0 - y_12*dyr0_dzeta3;
+
+  double dNytheta1_dzeta1, dNytheta1_dzeta2, dNytheta1_dzeta3;
+
+  dNytheta1_dzeta1 = (1.0/2.0)*(-g2*zeta_2 + g6*zeta_3 + g2*dzeta1221_dzeta1 + g6*dzeta3113_dzeta1);
+  dNytheta1_dzeta2 = (1.0/2.0)*(-g2*zeta_1 + g2*dzeta1221_dzeta2);
+  dNytheta1_dzeta3 = (1.0/2.0)*( g6*zeta_1 + g6*dzeta3113_dzeta3);
+
+  double dNytheta2_dzeta1, dNytheta2_dzeta2, dNytheta2_dzeta3;
+
+  dNytheta2_dzeta1 = (1.0/2.0)*(g2*zeta_2 + g2*dzeta1221_dzeta1);
+  dNytheta2_dzeta2 = (1.0/2.0)*(-g4*zeta_3 + g2*zeta_1 + g4*dzeta2332_dzeta2 + g2*dzeta1221_dzeta2);
+  dNytheta2_dzeta3 = (1.0/2.0)*(-g4*zeta_2 + g4*dzeta2332_dzeta3);
+
+  double dNytheta3_dzeta1, dNytheta3_dzeta2, dNytheta3_dzeta3;
+
+  dNytheta3_dzeta1 = (1.0/2.0)*(-g6*zeta_3 + g6*dzeta3113_dzeta1);
+  dNytheta3_dzeta2 = (1.0/2.0)*(g4*zeta_3 + g4*dzeta2332_dzeta2);
+  dNytheta3_dzeta3 = (1.0/2.0)*(-g6*zeta_1 + g4*zeta_2 + g6*dzeta3113_dzeta3 + g4*dzeta2332_dzeta3);
+
+
+  // Get the jacobians: dzetai_dx, dzetai_dy.
+
+  double dzeta1_dx, dzeta2_dx, dzeta3_dx;
+
+  dzeta1_dx = (y_2 - y_3)/(2.0*Area);
+  dzeta2_dx = (y_3 - y_1)/(2.0*Area);
+  dzeta3_dx = (y_1 - y_2)/(2.0*Area);
+
+  double dzeta1_dy, dzeta2_dy, dzeta3_dy;
+
+  dzeta1_dy = (x_3 - x_2)/(2.0*Area);
+  dzeta2_dy = (x_1 - x_3)/(2.0*Area);
+  dzeta3_dy = (x_2 - x_1)/(2.0*Area);
+
+  // Get the shape functions derivatives with respect to: x, y.
+
+  // Displacement uy shape functions derivatives
+
+  Nuy = 0.0;
+  Nuy(0,0) = dNxx1_dzeta1*dzeta1_dy + dNxx1_dzeta2*dzeta2_dy + dNxx1_dzeta3*dzeta3_dy;
+  Nuy(0,1) = dNxy1_dzeta1*dzeta1_dy + dNxy1_dzeta2*dzeta2_dy + dNxy1_dzeta3*dzeta3_dy;
+  Nuy(0,2) = dNxtheta1_dzeta1*dzeta1_dy + dNxtheta1_dzeta2*dzeta2_dy + dNxtheta1_dzeta3*dzeta3_dy;
+  Nuy(0,3) = dNxx2_dzeta1*dzeta1_dy + dNxx2_dzeta2*dzeta2_dy + dNxx2_dzeta3*dzeta3_dy;
+  Nuy(0,4) = dNxy2_dzeta1*dzeta1_dy + dNxy2_dzeta2*dzeta2_dy + dNxy2_dzeta3*dzeta3_dy;
+  Nuy(0,5) = dNxtheta2_dzeta1*dzeta1_dy + dNxtheta2_dzeta2*dzeta2_dy + dNxtheta2_dzeta3*dzeta3_dy;
+  Nuy(0,6) = dNxx3_dzeta1*dzeta1_dy + dNxx3_dzeta2*dzeta2_dy + dNxx3_dzeta3*dzeta3_dy;
+  Nuy(0,7) = dNxy3_dzeta1*dzeta1_dy + dNxy3_dzeta2*dzeta2_dy + dNxy3_dzeta3*dzeta3_dy;
+  Nuy(0,8) = dNxtheta3_dzeta1*dzeta1_dy + dNxtheta3_dzeta2*dzeta2_dy + dNxtheta3_dzeta3*dzeta3_dy;
+
+  // Displacement vx shape functions derivatives
+
+  Nvx = 0.0;
+  Nvx(0,0) = dNyx1_dzeta1*dzeta1_dx + dNyx1_dzeta2*dzeta2_dx + dNyx1_dzeta3*dzeta3_dx;
+  Nvx(0,1) = dNyy1_dzeta1*dzeta1_dx + dNyy1_dzeta2*dzeta2_dx + dNyy1_dzeta3*dzeta3_dx;
+  Nvx(0,2) = dNytheta1_dzeta1*dzeta1_dx + dNytheta1_dzeta2*dzeta2_dx + dNytheta1_dzeta3*dzeta3_dx; 
+  Nvx(0,3) = dNyx2_dzeta1*dzeta1_dx + dNyx2_dzeta2*dzeta2_dx + dNyx2_dzeta3*dzeta3_dx;
+  Nvx(0,4) = dNyy2_dzeta1*dzeta1_dx + dNyy2_dzeta2*dzeta2_dx + dNyy2_dzeta3*dzeta3_dx; 
+  Nvx(0,5) = dNytheta2_dzeta1*dzeta1_dx + dNytheta2_dzeta2*dzeta2_dx + dNytheta2_dzeta3*dzeta3_dx;
+  Nvx(0,6) = dNyx3_dzeta1*dzeta1_dx + dNyx3_dzeta2*dzeta2_dx + dNyx3_dzeta3*dzeta3_dx;
+  Nvx(0,7) = dNyy3_dzeta1*dzeta1_dx + dNyy3_dzeta2*dzeta2_dx + dNyy3_dzeta3*dzeta3_dx; 
+  Nvx(0,8) = dNytheta3_dzeta1*dzeta1_dx + dNytheta3_dzeta2*dzeta2_dx + dNytheta3_dzeta3*dzeta3_dx;
 }
 
 
