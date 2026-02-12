@@ -1,0 +1,14 @@
+
+<!-- Define a table with external loads -->
+
+<NodeTable name="load">
+
+  <Section columns="v">
+
+    RT 6.666666667;
+    RM 26.666666667;
+    RB 6.666666667;
+
+  </Section>
+
+</NodeTable>

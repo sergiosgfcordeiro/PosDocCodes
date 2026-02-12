@@ -1057,6 +1057,7 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
     // {
     //   jem::System::out() << R_I[i] << " ";
     // }
+    //   jem::System::out() << "\n";
 
     // Reordering the elemForce to match the order of the DOfs in Jive.
 
@@ -1088,6 +1089,15 @@ void PanelRibsInterface6DofsBFModel::getMatrix_
     {
       mbuilder->addBlock ( idofs, idofs, elemMat0 );
     }
+
+    // // Print the contents of the elemMat0 matrix for debugging purposes.
+    // for ( idx_t i = 0; i < elemMat0.size(0); i++ )
+    // {
+    //   for ( idx_t j = 0; j < elemMat0.size(1); j++ )
+    //   {
+    //   jem::System::out() << elemMat0(i,j) << " ";
+    //   }
+    // }
 
     // Add the element force vector to the global force vector.
 
