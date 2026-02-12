@@ -50,7 +50,7 @@ typedef MatmulChain<double,1>   MChain1;
 //   definition
 //======================================================================
 
-const char* ShellModel::DOF_NAMES[5]     = {"u","v","w","wx","wy"};
+const char* ShellModel::DOF_NAMES[5]     = {"u","v","w","rx","ry"};
 const char* ShellModel::SHAPE_PROP       = "shape";
 const char* ShellModel::MATERIAL_PROP    = "material";
 const char* ShellModel::THICK_PROP       = "thickness";
@@ -606,14 +606,14 @@ void ShellModel::getMatrix_
     for (idx_t i = 0; i < nodeCount_; ++i) {
       for (idx_t j = 0; j < nodeCount_; ++j) {
 
-        // Membrane contribution.
+        // u, v membrane (in-plane) contribution.
 
         K_shell(5*i, 5*j) = K_mem(2*i, 2*j);
         K_shell(5*i, 5*j+1) = K_mem(2*i, 2*j+1);
         K_shell(5*i+1, 5*j) = K_mem(2*i+1, 2*j);
         K_shell(5*i+1, 5*j+1) = K_mem(2*i+1, 2*j+1);
 
-        // Plate contribution.
+        // w, wx (-ry), wy (rx) plate (out-of-plane) contribution.
 
         K_shell(5*i+2, 5*j+2) = K_plate(3*i, 3*j);
         K_shell(5*i+2, 5*j+3) = K_plate(3*i, 3*j+1);

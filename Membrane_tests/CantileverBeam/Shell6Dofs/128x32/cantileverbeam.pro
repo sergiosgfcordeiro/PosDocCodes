@@ -306,7 +306,7 @@ model =
       constraints =
       {
         nodeGroups = [ "left", "left", "left", "left", "left", "left" ];
-        dofs = [ "u", "v", "w", "wx", "wy", "wz" ];
+        dofs = [ "u", "v", "w", "rx", "ry", "rz" ];
 
         loads = 
         {
@@ -387,7 +387,7 @@ modules = [ "paraview" ];
     {
       shape = "Triangle3";
       disps = [ "u", "v", "w" ];
-      // otherDofs = [ "wx", "wy" ];
+      // otherDofs = [ "rx", "ry", "rz" ];
     };
   };
 };

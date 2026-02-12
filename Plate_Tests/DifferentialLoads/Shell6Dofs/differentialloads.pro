@@ -7,7 +7,7 @@ log =
 control = 
 {
   pause = 0.;
-  runWhile = "i < 2";
+  runWhile = "i < 100";
 };
 
 userInput =
@@ -17,7 +17,7 @@ userInput =
   GmshInput =
   {
     type = "GmshInput";
-    file = "cantileverbeam.msh";
+    file = "differentialloads.msh";
 
     doElemGroups = true; // don't make element groups from physical surfaces
   };
@@ -27,103 +27,20 @@ userInput =
   ngroups = 
   {
     type = "GroupInput";
-    nodeGroups = [ "left", "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15", "R16", "bottom",  "top"];
+    nodeGroups = [ "left", "RT", "RB"];
     left = 
     {
       xtype = "min";
     };
-    R0 = 
+    RT = 
     {
       xtype = "max";
-      ybounds = [-0.01, 0.01];
-    };
-    R1 = 
-    {
-      xtype = "max";
-      ybounds = [0.74, 0.76];
-    };
-    R2 = 
-    {
-      xtype = "max";
-      ybounds = [1.49, 1.51];
-    };
-    R3 = 
-    {
-      xtype = "max";
-      ybounds = [2.24, 2.26];
-    };
-    R4 = 
-    {
-      xtype = "max";
-      ybounds = [2.99, 3.01];
-    };
-    R5 = 
-    {
-      xtype = "max";
-      ybounds = [3.74, 3.76];
-    };
-    R6 = 
-    {
-      xtype = "max";
-      ybounds = [4.49, 4.51];
-    };
-    R7 = 
-    {
-      xtype = "max";
-      ybounds = [5.24, 5.26];
-    };
-    R8 = 
-    {
-      xtype = "max";
-      ybounds = [5.99, 6.01];
-    };
-    R9 = 
-    {
-      xtype = "max";
-      ybounds = [6.74, 6.76];
-    };
-    R10 = 
-    {
-      xtype = "max";
-      ybounds = [7.49, 7.51];
-    };
-    R11 = 
-    {
-      xtype = "max";
-      ybounds = [8.24, 8.26];
-    };
-    R12 = 
-    {
-      xtype = "max";
-      ybounds = [8.99, 9.01];
-    };
-    R13 = 
-    {
-      xtype = "max";
-      ybounds = [9.74, 9.76];
-    };
-    R14 = 
-    {
-      xtype = "max";
-      ybounds = [10.49, 10.51];
-    };
-    R15 = 
-    {
-      xtype = "max";
-      ybounds = [11.24, 11.26];
-    };
-    R16 = 
-    {
-      xtype = "max";
-      ybounds = [11.99, 12.01];
-    };
-    bottom = 
-    {
-      ytype = "min";
-    };
-    top = 
-    {
       ytype = "max";
+    };
+    RB = 
+    {
+      xtype = "max";
+      ytype = "min";
     };
   };
   
@@ -132,7 +49,7 @@ userInput =
   loads = 
   {
     type = "Input";
-    file = "cantilever.data";
+    file = "differentialloads.data";
   };
 };
 
@@ -145,13 +62,13 @@ model =
   {
     type   = "Multi";
 
-    models = [ "cantileverbeam" ,        // first ShellFEMModel
+    models = [ "plate" ,        // first ShellFEMModel
                "arclen" ,       // DispArclenModel
                "lodi" ];        // LoadDispModel
 
     // first ShellFEMModel: Cantilever Beam
 
-    cantileverbeam =
+    plate =
     {
       type      = "Shell6DofsBF";
       elements  = "gmsh1";  // "gmsh0" is the default element group for panels
@@ -173,10 +90,10 @@ model =
         type    = "Orthotropic";
         dim     = 2;
         state   = "PLANE_STRESS";
-        young1  = 30000.0;
-        young2  = 30000.0;
+        young1  = 10000000.0;
+        young2  = 10000000.0;
         poisson12 = 0.25;
-        shear12 = 12000.0;
+        shear12 = 4000000.0;
         theta      = 0.;
       };
 
@@ -189,7 +106,7 @@ model =
       alpha = 1.5;
       beta = 0.5;
 
-      thickness = 1.0;
+      thickness = 0.05;
     };
 
     arclen = 
@@ -211,7 +128,7 @@ model =
 
       // initial displacement increment:
 
-      dispIncr = 1.0;
+      dispIncr = 0.1;
 
       // bounds for increment size
       
@@ -225,8 +142,8 @@ model =
 
       constraints =
       {
-        nodeGroups = [ "left", "left", "left", "left", "left", "left" ];
-        dofs = [ "u", "v", "w", "rx", "ry", "rz" ];
+        nodeGroups = [ "left", "left", "left", "left", "left" ];
+        dofs = [ "u", "v", "w", "rx", "ry" ];
 
         loads = 
         {
@@ -238,7 +155,7 @@ model =
     lodi =
     {
       type = "LoadDisp";
-      group = "R8";
+      group = "RT";
     };
   };
 };
@@ -253,8 +170,8 @@ sample =
 
     // the data that is written (see 'lodi' above)
 
-    dataSets = [ "i","model.model.lodi.disp[1]",
-                 "abs(model.model.lodi.load[1])" ];
+    dataSets = [ "i","model.model.lodi.disp[2]",
+                 "abs(model.model.lodi.load[2])" ];
 };
  
 userModules = 

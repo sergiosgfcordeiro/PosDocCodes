@@ -251,12 +251,6 @@ class Shell6DofsBFModel : public Model
       const Vector&       weights,
       const Vector&       disp );
 
-  // void                  getStrain_
-
-  //   ( Vector&             strain,
-  //     Matrix&             b,
-  //     const Vector&       disp )    const;
-
   void                 writeElements_
 
   ( const Properties&   params,

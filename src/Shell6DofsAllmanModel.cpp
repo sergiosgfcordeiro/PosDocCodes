@@ -53,7 +53,7 @@ typedef MatmulChain<double,1>   MChain1;
 //   definition
 //======================================================================
 
-const char* Shell6DofsAllmanModel::DOF_NAMES[6]     = {"u","v","w","wx","wy","wz"};
+const char* Shell6DofsAllmanModel::DOF_NAMES[6]     = {"u","v","w","rx","ry","rz"};
 const char* Shell6DofsAllmanModel::SHAPE_PROP       = "shape";
 const char* Shell6DofsAllmanModel::MATERIAL_PROP    = "material";
 const char* Shell6DofsAllmanModel::DRILLING_PROP    = "drilling_stif_factor";
@@ -637,16 +637,6 @@ void Shell6DofsAllmanModel::getMatrix_
 
     K_mem = K_mem + K_memstab;
 
-    // // Print the contents of the K_mem matrix for debugging purposes.
-    // for ( idx_t i = 0; i < K_mem.size(0); i++ )
-    // {
-    //   for ( idx_t j = 0; j < K_mem.size(1); j++ )
-    //   {
-    //     jem::System::out() << K_mem(i,j) << " ";
-    //   }
-    //   jem::System::out() << "\n";
-    // }
-
     // Get the tangent stiffness matrix and the stress vector at the first integration point.
 
     int ip = 0;
@@ -679,24 +669,13 @@ void Shell6DofsAllmanModel::getMatrix_
     jem::numeric::Cholesky::invert(Hinv);
     K_plate = mc3.matmul ( bT.transpose(), Hinv, bT );
 
-
-    // // Print the contents of the K_plate matrix for debugging purposes.
-    // for ( idx_t i = 0; i < K_plate.size(0); i++ )
-    // {
-    //   for ( idx_t j = 0; j < K_plate.size(1); j++ )
-    //   {
-    //     jem::System::out() << K_plate(i,j) << " ";
-    //   }
-    //   jem::System::out() << "\n";
-    // }
-
     // Assemble the shell stiffness matrix.
 
     K_shell = 0.0;
     for (idx_t i = 0; i < nodeCount_; ++i) {
       for (idx_t j = 0; j < nodeCount_; ++j) {
 
-        // u,v, wz in-plane (membrane) contribution.
+        // u,v, rz in-plane (membrane) contribution.
         K_shell(6*i+0, 6*j+0) = K_mem(3*i+0, 3*j+0);     
         K_shell(6*i+0, 6*j+1) = K_mem(3*i+0, 3*j+1);
         K_shell(6*i+0, 6*j+5) = K_mem(3*i+0, 3*j+2);
@@ -709,7 +688,7 @@ void Shell6DofsAllmanModel::getMatrix_
         K_shell(6*i+5, 6*j+1) = K_mem(3*i+2, 3*j+1);
         K_shell(6*i+5, 6*j+5) = K_mem(3*i+2, 3*j+2);
 
-        // w, wx, wy out-of-plane (plate) contribution.
+        // w, wx (-ry), wy (rx) out-of-plane (plate) contribution.
         K_shell(6*i+2, 6*j+2) = K_plate(3*i+0, 3*j+0);
         K_shell(6*i+2, 6*j+3) = K_plate(3*i+0, 3*j+1);
         K_shell(6*i+2, 6*j+4) = K_plate(3*i+0, 3*j+2);

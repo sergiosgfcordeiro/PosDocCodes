@@ -54,7 +54,7 @@ typedef MatmulChain<double,1>   MChain1;
 //   definition
 //======================================================================
 
-const char* ShellANDESModel::DOF_NAMES[6]     = {"u","v","w","wx","wy","wz"};
+const char* ShellANDESModel::DOF_NAMES[6]     = {"u","v","w","rx","ry","rz"};
 const char* ShellANDESModel::SHAPE_PROP       = "shape";
 const char* ShellANDESModel::MATERIAL_PROP    = "material";
 const char* ShellANDESModel::ALPHA_PROP       = "alpha";
@@ -667,13 +667,6 @@ void ShellANDESModel::getMatrix_
 
     K_mem = Kb_mem + (3.0/4.0)*beta_[0] * Kh_mem;
 
-    // // Print the contents of beta_ for debugging purposes.
-    // for ( idx_t i = 0; i < 10; i++ )
-    // {
-    //   jem::System::out() << beta_[i] << " ";
-    //   jem::System::out() << "\n";
-    // }
-
     // Get the tangent stiffness matrix and the stress vector at the first integration point.
 
     int ip = 0;
@@ -710,7 +703,7 @@ void ShellANDESModel::getMatrix_
     for (idx_t i = 0; i < nodeCount_; ++i) {
       for (idx_t j = 0; j < nodeCount_; ++j) {
 
-        // u,v, wz in-plane (membrane) contribution.
+        // u,v, rz in-plane (membrane) contribution.
         K_shell(6*i+0, 6*j+0) = K_mem(3*i+0, 3*j+0);     
         K_shell(6*i+0, 6*j+1) = K_mem(3*i+0, 3*j+1);
         K_shell(6*i+0, 6*j+5) = K_mem(3*i+0, 3*j+2);
@@ -723,7 +716,7 @@ void ShellANDESModel::getMatrix_
         K_shell(6*i+5, 6*j+1) = K_mem(3*i+2, 3*j+1);
         K_shell(6*i+5, 6*j+5) = K_mem(3*i+2, 3*j+2);
 
-        // w, wx, wy out-of-plane (plate) contribution.
+        // w, wx (-ry), wy (rx) out-of-plane (plate) contribution.
         K_shell(6*i+2, 6*j+2) = K_plate(3*i+0, 3*j+0);
         K_shell(6*i+2, 6*j+3) = K_plate(3*i+0, 3*j+1);
         K_shell(6*i+2, 6*j+4) = K_plate(3*i+0, 3*j+2);
